@@ -266,6 +266,9 @@
 		9E836BAE17DB3262000397D2 /* AppDelegate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BAD17DB3262000397D2 /* AppDelegate.cpp */; };
 		9E836BB117DB3262000397D2 /* HelloWorldScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BB017DB3262000397D2 /* HelloWorldScene.cpp */; };
 		9E836BB317DB3262000397D2 /* blocks.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BB217DB3262000397D2 /* blocks.png */; };
+		9E836BBA17DB4855000397D2 /* plane.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BB917DB4855000397D2 /* plane.png */; };
+		9E836BBC17DB485E000397D2 /* table9x9.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BBB17DB485E000397D2 /* table9x9.png */; };
+		9E836BBE17DB4C02000397D2 /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BBD17DB4C02000397D2 /* background.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -828,6 +831,9 @@
 		9E836BAF17DB3262000397D2 /* HelloWorldScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HelloWorldScene.h; path = Classes/HelloWorldScene.h; sourceTree = "<group>"; };
 		9E836BB017DB3262000397D2 /* HelloWorldScene.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldScene.cpp; path = Classes/HelloWorldScene.cpp; sourceTree = "<group>"; };
 		9E836BB217DB3262000397D2 /* blocks.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = blocks.png; path = Resources/blocks.png; sourceTree = "<group>"; };
+		9E836BB917DB4855000397D2 /* plane.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = plane.png; path = Resources/plane.png; sourceTree = "<group>"; };
+		9E836BBB17DB485E000397D2 /* table9x9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = table9x9.png; path = Resources/table9x9.png; sourceTree = "<group>"; };
+		9E836BBD17DB4C02000397D2 /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = background.png; path = Resources/background.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -898,6 +904,9 @@
 		9E83684E17DB325C000397D2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9E836BBD17DB4C02000397D2 /* background.png */,
+				9E836BBB17DB485E000397D2 /* table9x9.png */,
+				9E836BB917DB4855000397D2 /* plane.png */,
 				9E83684F17DB325C000397D2 /* CloseNormal.png */,
 				9E83685117DB325C000397D2 /* CloseSelected.png */,
 				9E83685317DB325C000397D2 /* Default.png */,
@@ -2058,6 +2067,9 @@
 				9E836B1617DB3261000397D2 /* cocos2dx-ext.mkf in Resources */,
 				9E836B1817DB3261000397D2 /* cocos2dx-ext_public.defines.txt in Resources */,
 				9E836BB317DB3262000397D2 /* blocks.png in Resources */,
+				9E836BBA17DB4855000397D2 /* plane.png in Resources */,
+				9E836BBC17DB485E000397D2 /* table9x9.png in Resources */,
+				9E836BBE17DB4C02000397D2 /* background.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

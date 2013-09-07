@@ -36,12 +36,18 @@ public:
     void addNewSpriteAtPosition(cocos2d::CCPoint p);
 
     virtual void draw();
+    void setTouched(bool &spriteTouched, int condition);
     virtual void ccTouchesEnded(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
+    virtual void ccTouchesBegan(cocos2d::CCSet* pTouches, cocos2d::CCEvent* event);
+    virtual void ccTouchesMoved(cocos2d::CCSet* pTouches, cocos2d::CCEvent* event);
     void update(float dt);
     
 private:
     b2World* world;
     cocos2d::CCTexture2D* m_pSpriteTexture; // weak ref
+    
+    cocos2d::CCSprite* _plane;
+    bool _planeTouched;
 };
 
 #endif // __HELLO_WORLD_H__

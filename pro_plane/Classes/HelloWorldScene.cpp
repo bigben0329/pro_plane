@@ -69,25 +69,41 @@ CCAffineTransform PhysicsSprite::nodeToParentTransform(void)
 
 HelloWorld::HelloWorld()
 {
+    //启动touch事件
+    _planeTouched = false;
     setTouchEnabled( true );
-    setAccelerometerEnabled( true );
+    //启动重力感应
+    setAccelerometerEnabled( false );
 
     CCSize s = CCDirector::sharedDirector()->getWinSize();
     // init physics
-    this->initPhysics();
+    //this->initPhysics();
 
-    CCSpriteBatchNode *parent = CCSpriteBatchNode::create("blocks.png", 100);
-    m_pSpriteTexture = parent->getTexture();
+    CCSprite* pSprbackground = CCSprite::create("background.png");
+    pSprbackground->setPosition( ccp(s.width/2, s.height/2) );
+    pSprbackground->setScaleX(s.width/pSprbackground->getContentSize().width);
+    pSprbackground->setScaleY(s.height/pSprbackground->getContentSize().height);
+    this->addChild(pSprbackground, 0);
+    
+    // position the sprite on the center of the screen
+    CCSprite* pSprite = CCSprite::create("table9x9.png");
+    pSprite->setPosition( ccp(s.width/2, s.height/2) );
+    pSprite->setScaleX(s.width/pSprite->getContentSize().width);
+    pSprite->setScaleY(s.height/pSprite->getContentSize().height);
+    this->addChild(pSprite, 1);
 
-    addChild(parent, 0, kTagParentNode);
 
-
-    addNewSpriteAtPosition(ccp(s.width/2, s.height/2));
-
-    CCLabelTTF *label = CCLabelTTF::create("Tap screen", "Marker Felt", 32);
-    addChild(label, 0);
+    CCLabelTTF *label = CCLabelTTF::create("Tap \nscreen", "Marker Felt", 32);
+    addChild(label, 2);
     label->setColor(ccc3(0,0,255));
     label->setPosition(ccp( s.width/2, s.height-50));
+    
+    
+    // position the sprite on the center of the screen
+    _plane = CCSprite::create("plane.png");
+    _plane->setPosition(ccp(s.width - _plane->getContentSize().width/2, s.height - _plane->getContentSize().height/2));
+    this->addChild(_plane, 3);
+
     
     scheduleUpdate();
 }
@@ -169,13 +185,14 @@ void HelloWorld::draw()
 
     kmGLPushMatrix();
 
-    world->DrawDebugData();
+    //world->DrawDebugData();
 
     kmGLPopMatrix();
 }
 
 void HelloWorld::addNewSpriteAtPosition(CCPoint p)
 {
+    return;
     CCLOG("Add sprite %0.2f x %02.f",p.x,p.y);
     CCNode* parent = getChildByTag(kTagParentNode);
     
@@ -193,24 +210,24 @@ void HelloWorld::addNewSpriteAtPosition(CCPoint p)
     
     // Define the dynamic body.
     //Set up a 1m squared box in the physics world
-    b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(p.x/PTM_RATIO, p.y/PTM_RATIO);
-    
-    b2Body *body = world->CreateBody(&bodyDef);
-    
-    // Define another box shape for our dynamic body.
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(.5f, .5f);//These are mid points for our 1m box
-    
-    // Define the dynamic body fixture.
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicBox;    
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
-    body->CreateFixture(&fixtureDef);
-    
-    sprite->setPhysicsBody(body);
+//    b2BodyDef bodyDef;
+//    bodyDef.type = b2_dynamicBody;
+//    bodyDef.position.Set(p.x/PTM_RATIO, p.y/PTM_RATIO);
+//    
+//    b2Body *body = world->CreateBody(&bodyDef);
+//    
+//    // Define another box shape for our dynamic body.
+//    b2PolygonShape dynamicBox;
+//    dynamicBox.SetAsBox(.5f, .5f);//These are mid points for our 1m box
+//    
+//    // Define the dynamic body fixture.
+//    b2FixtureDef fixtureDef;
+//    fixtureDef.shape = &dynamicBox;    
+//    fixtureDef.density = 1.0f;
+//    fixtureDef.friction = 0.3f;
+//    body->CreateFixture(&fixtureDef);
+//    
+//    sprite->setPhysicsBody(body);
 }
 
 
@@ -226,40 +243,40 @@ void HelloWorld::update(float dt)
     
     // Instruct the world to perform a single step of simulation. It is
     // generally best to keep the time step and iterations fixed.
-    world->Step(dt, velocityIterations, positionIterations);
+    //world->Step(dt, velocityIterations, positionIterations);
     
     //Iterate over the bodies in the physics world
-    for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
-    {
-        if (b->GetUserData() != NULL) {
-            //Synchronize the AtlasSprites position and rotation with the corresponding body
-            CCSprite* myActor = (CCSprite*)b->GetUserData();
-            myActor->setPosition( CCPointMake( b->GetPosition().x * PTM_RATIO, b->GetPosition().y * PTM_RATIO) );
-            myActor->setRotation( -1 * CC_RADIANS_TO_DEGREES(b->GetAngle()) );
-        }    
-    }
+//    for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
+//    {
+//        if (b->GetUserData() != NULL) {
+//            //Synchronize the AtlasSprites position and rotation with the corresponding body
+//            CCSprite* myActor = (CCSprite*)b->GetUserData();
+//            myActor->setPosition( CCPointMake( b->GetPosition().x * PTM_RATIO, b->GetPosition().y * PTM_RATIO) );
+//            myActor->setRotation( -1 * CC_RADIANS_TO_DEGREES(b->GetAngle()) );
+//        }    
+//    }
 }
 
-void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
-{
-    //Add a new body/atlas sprite at the touched location
-    CCSetIterator it;
-    CCTouch* touch;
-    
-    for( it = touches->begin(); it != touches->end(); it++) 
-    {
-        touch = (CCTouch*)(*it);
-        
-        if(!touch)
-            break;
-        
-        CCPoint location = touch->getLocationInView();
-        
-        location = CCDirector::sharedDirector()->convertToGL(location);
-        
-        addNewSpriteAtPosition( location );
-    }
-}
+//void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
+//{
+//    //Add a new body/atlas sprite at the touched location
+//    CCSetIterator it;
+//    CCTouch* touch;
+//    
+//    for( it = touches->begin(); it != touches->end(); it++) 
+//    {
+//        touch = (CCTouch*)(*it);
+//        
+//        if(!touch)
+//            break;
+//        
+//        CCPoint location = touch->getLocationInView();
+//        
+//        location = CCDirector::sharedDirector()->convertToGL(location);
+//        
+//        addNewSpriteAtPosition( location );
+//    }
+//}
 
 CCScene* HelloWorld::scene()
 {
@@ -272,4 +289,86 @@ CCScene* HelloWorld::scene()
     layer->release();
     
     return scene;
+}
+
+void HelloWorld::ccTouchesBegan(CCSet* pTouches, CCEvent* event)
+{
+    CCTouch* pTouch = (CCTouch*)(pTouches->anyObject());
+    CCPoint location = pTouch->getLocationInView();
+    
+    location.y = (location.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
+    CCRect* pTextureRect = new CCRect(_plane->getPositionX(), _plane->getPositionY(), _plane->getContentSize().width, _plane->getContentSize().height);
+    
+    for (CCSetIterator iter = pTouches->begin(); iter != pTouches->end(); ++iter)
+    {
+        if (pTextureRect->containsPoint(location))
+        {
+            CCLog("Touched Sprite");
+            HelloWorld::setTouched(_planeTouched, 0);
+        }
+        
+        else if (!pTextureRect->containsPoint(location))
+        {
+            CCLog("Touched Layer");
+            HelloWorld::setTouched(_planeTouched, 1);
+        }
+    }
+}
+
+void HelloWorld::ccTouchesMoved(CCSet* pTouches, CCEvent* event)
+{
+    CCRect* pTextureRect = new CCRect(_plane->getPositionX(), _plane->getPositionY(), _plane->getContentSize().width, _plane->getContentSize().height);
+    
+    CCTouch* pTouch = (CCTouch*)(pTouches->anyObject());
+    CCPoint location = pTouch->getLocationInView();
+    location.y = (location.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
+    
+    for (CCSetIterator iter = pTouches->begin(); iter != pTouches->end(); ++iter)
+    {
+        if (pTextureRect->containsPoint(location) && _planeTouched == true)
+        {
+            CCPoint oldTouchLocation = pTouch->getPreviousLocationInView();
+            oldTouchLocation.y = (oldTouchLocation.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
+            CCPoint translation = ccpSub(location, oldTouchLocation);
+            //translation.y = translation.y * (-1);
+            CCPoint newPosition = ccpAdd(_plane->getPosition(), translation);
+            _plane->setPosition(newPosition);
+        }
+        
+//        else if (!pTextureRect->containsPoint(location) && _planeTouched == false)
+//        {
+//            CCPoint oldTouchLocation = pTouch->getPreviousLocationInView();
+//            oldTouchLocation.y = (oldTouchLocation.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
+//            CCPoint translation = ccpSub(location, oldTouchLocation);
+//            this->setPosition(ccpAdd(this->getPosition(), translation));
+//        }
+    }
+}
+
+void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
+{
+    if (_planeTouched == true)
+    {
+        HelloWorld::setTouched(_planeTouched, 1);
+    }
+    
+    else if (_planeTouched == false)
+    {
+        HelloWorld::setTouched(_planeTouched, 0);
+    }
+}
+
+void HelloWorld::setTouched(bool &spriteTouched, int condition)
+{
+    if (condition == 0)
+    {
+        spriteTouched = true;
+        CCLog("Set to True");
+    }
+    
+    else if (condition == 1)
+    {
+        spriteTouched = false;
+        CCLog("Set to False");
+    }
 }
