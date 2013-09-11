@@ -461,8 +461,11 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
     if( !_layerOnline->isVisible() )
     {
         _layerOnline->setVisible(true);
+        
+        //std::string resp;
+        //g_svr->doSvrCmd("onlineinfo", "ben", resp, true);
         g_svr->doSvrCmd("onlineinfo", "ben");
-        CCLOG("btnGetOnlineCallback _labelOnline content:%s", _labelOnline->getString());
+        //setOnlineLable(resp);
     }
     else
     {
@@ -473,16 +476,13 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
 
 void HelloWorld::setOnlineLable(const std::string content)
 {
-    CCLOG("setOnlineLable content:%s", content.c_str() );
     if( _labelOnline )
     {
         _labelOnline->setString(content.c_str());
-        CCLOG("_labelOnline content:%s", _labelOnline->getString());
     }
     else
     {
         CCLOG("_labelOnline is null");
     }
-    CCLOG("setOnlineLable end");
 }
 

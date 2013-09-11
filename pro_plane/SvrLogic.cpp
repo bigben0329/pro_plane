@@ -8,6 +8,7 @@
 
 #include "SvrLogic.h"
 #include "CCSprite.h"
+#include "CThreadManager.h"
 
 #include <stdio.h>
 #include <netinet/in.h>  //定义数据结构sockaddr_in
@@ -23,13 +24,10 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
-
-
 using namespace std;
 
 
-CSvrLogic::CSvrLogic():
-    _clientfd(0)
+CSvrLogic::CSvrLogic()
 {
 }
 
@@ -37,6 +35,60 @@ CSvrLogic::~CSvrLogic()
 {
     closeSvr();
 }
+
+
+
+int Process(int fd, HelloWorld* helloworld )
+{
+    CCLOG("Process begin fd:%d",fd);
+    //子进程用于接收信息
+    char* buf;
+    buf=(char *)malloc(1024);
+    memset(buf,0,100);
+    
+    if(recv(fd,buf,100,0) <= 0)
+    {
+        CCLOG("recv:");
+        close(fd);
+        raise(SIGSTOP);
+        exit(1);
+    }
+    CCLOG("server cmd response:%s",buf);
+
+    
+    std::string cmd, reps;
+    std::string rbody = std::string(buf);
+
+    int r = CSvrLogic::splitResp(rbody, cmd, reps);
+    CCLOG("r:%d cmd:%s reps:%s", r, cmd.c_str(), reps.c_str());
+    if( 0 == r )
+    {
+        if( "onlineinfo" == cmd )
+        {
+            CCLOG("do onlineinfo");
+            if( helloworld )
+            {
+                helloworld->setOnlineLable(reps);
+            }
+            else
+            {
+                CCLOG("_helloworld is null");
+            }
+            CCLOG("end onlineinfo");
+        }
+        else if( "" == cmd )
+        {
+
+        }
+        else
+        {
+            CCLOG("can not found function for cmd %s", cmd.c_str());
+        }
+    }
+
+	return 0;
+}
+
 
 int CSvrLogic::initSvr(const std::string ip, const int port )
 {
@@ -62,92 +114,97 @@ int CSvrLogic::initSvr(const std::string ip, const int port )
     }
     
     //接收服务器第一次发包
-    char *buf, *temp;
-    buf=(char *)malloc(1024);
-    temp=(char *)malloc(1024);
-    memset(buf,0,1024);
-    memset(temp,0,1024);
-    int recvbytes = 0;    
-    if( recv(_clientfd,buf,1024,0) == -1)
+    _rev_buf=(char *)malloc(1024);
+    memset(_rev_buf,0,1024);
+    
+    //int recvbytes = 0;
+    if( recv(_clientfd,_rev_buf,1024,0) == -1)
     {
         CCLOG("recv error!");
         return -3;
     }
-    CCLOG("protocol head\n%s\n",buf);
+    CCLOG("protocol head\n%s\n",_rev_buf);
     
+    // 创建线程管理类的实例，把要执行的线程函数和最大线程数传进去
+	CThreadManager* pManager = new CThreadManager(Process, 1);
+    pManager->regHelloWorld(_helloworld);
+	pManager->regFd(_clientfd);
+	pManager->PostSem();
     
-    key_t shmid;
-    if((shmid = shmget(((key_t)0),1024,S_IRUSR|S_IWUSR)) == -1)
-    {
-        CCLOG("ceate shm error!");
-        return -2;
-    }
-    
-    char* shAddr = (char*)shmat(shmid, 0, 0);
-    
-    pid_t pid = fork();//创建子进程
-    while(1)
-    {
-        if(pid == 0)
-        {
-            //子进程用于接收信息
-            memset(buf,0,100);
-            if(recv(_clientfd,buf,100,0) <= 0)
-            {
-                CCLOG("recv:");
-                close(_clientfd);
-                raise(SIGSTOP);
-                exit(1);
-            }
-            CCLOG("server cmd response:%s\n",buf);
-            
-            memset(shAddr, '\0', 1024);
-            strncpy(shAddr, buf, 1024);
-            CCLOG("shAddr:%s\n",shAddr);
-            
-        }
-        else
-        {
-            if(strcmp(temp,shAddr) != 0)
-            {
-                strcpy(temp,shAddr);
-                printf("shAddr:%s\n",temp);
-                
-                std::string cmd, reps;
-                std::string rbody = std::string(temp);
-                
-                int r = splitResp(rbody, cmd, reps);
-                CCLOG("r:%d cmd:%s reps:%s", r, cmd.c_str(), reps.c_str());
-                if( 0 == r )
-                {
-                    if( "onlineinfo" == cmd )
-                    {
-                        CCLOG("do onlineinfo");
-                        if( _helloworld )
-                        {
-                            _helloworld->setOnlineLable(reps);
-                        }
-                        else
-                        {
-                            CCLOG("_helloworld is null");
-                        }
-                        CCLOG("end onlineinfo");
-                    }
-                    else if( "" == cmd )
-                    {
-                        
-                    }
-                    else
-                    {
-                        CCLOG("can not found function for cmd %s", cmd.c_str());
-                    }
-                }
-                
-            }
-
-            return 0;
-        }
-    }
+//    char *temp;
+//    temp=(char *)malloc(1024);
+//    memset(temp,0,1024);
+//    key_t shmid;
+//    if((shmid = shmget(((key_t)0),1024,S_IRUSR|S_IWUSR)) == -1)
+//    {
+//        CCLOG("ceate shm error!");
+//        return -2;
+//    }
+//    
+//    char* shAddr = (char*)shmat(shmid, 0, 0);
+//    
+//    pid_t pid = fork();//创建子进程
+//    while(1)
+//    {
+//        if(pid == 0)
+//        {
+//            //子进程用于接收信息
+//            memset(buf,0,100);
+//            if(recv(_clientfd,buf,100,0) <= 0)
+//            {
+//                CCLOG("recv:");
+//                close(_clientfd);
+//                raise(SIGSTOP);
+//                exit(1);
+//            }
+//            CCLOG("server cmd response:%s\n",buf);
+//            
+//            memset(shAddr, '\0', 1024);
+//            strncpy(shAddr, buf, 1024);
+//            CCLOG("shAddr:%s\n",shAddr);
+//            
+//        }
+//        else
+//        {
+//            if(strcmp(temp,shAddr) != 0)
+//            {
+//                strcpy(temp,shAddr);
+//                printf("shAddr:%s\n",temp);
+//                
+//                std::string cmd, reps;
+//                std::string rbody = std::string(temp);
+//                
+//                int r = splitResp(rbody, cmd, reps);
+//                CCLOG("r:%d cmd:%s reps:%s", r, cmd.c_str(), reps.c_str());
+//                if( 0 == r )
+//                {
+//                    if( "onlineinfo" == cmd )
+//                    {
+//                        CCLOG("do onlineinfo");
+//                        if( _helloworld )
+//                        {
+//                            _helloworld->setOnlineLable(reps);
+//                        }
+//                        else
+//                        {
+//                            CCLOG("_helloworld is null");
+//                        }
+//                        CCLOG("end onlineinfo");
+//                    }
+//                    else if( "" == cmd )
+//                    {
+//                        
+//                    }
+//                    else
+//                    {
+//                        CCLOG("can not found function for cmd %s", cmd.c_str());
+//                    }
+//                }
+//            }
+//
+//            return 0;
+//        }
+//    }
     
     return 0;
 }

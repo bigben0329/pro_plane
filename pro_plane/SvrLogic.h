@@ -21,17 +21,15 @@ public:
     int initSvr(const std::string ip, const int port);
     int doSvrCmd(std::string cmd, std::string request);
     int doSvrCmd(std::string cmd, std::string request, std::string& reps, bool bNeedResp = true);
-    int splitResp(const std::string resp, std::string& cmd, std::string& body);
+    
+    static int splitResp(const std::string resp, std::string& cmd, std::string& body);
     
     int regScene(HelloWorld* hl);
-    
     int closeSvr();
     
-    
-    
 private:
-    
-    int _clientfd;//定义客户端套接字
+    char* _rev_buf;
+    int   _clientfd;//定义客户端套接字
     HelloWorld* _helloworld;
     
 };

@@ -277,6 +277,8 @@
 		9E836BCB17DBA712000397D2 /* boom.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BCA17DBA712000397D2 /* boom.png */; };
 		9E836BCE17DBC53D000397D2 /* GameOverScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BCC17DBC53D000397D2 /* GameOverScene.cpp */; };
 		9E836BD117DC26FF000397D2 /* SvrLogic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BCF17DC26FF000397D2 /* SvrLogic.cpp */; };
+		9E92C90D17E0DF5000BC4157 /* CThreadManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E92C90B17E0DF5000BC4157 /* CThreadManager.cpp */; };
+		9E92C91017E0E06D00BC4157 /* CThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E92C90E17E0E06D00BC4157 /* CThread.cpp */; };
 		9ED97DB417DCD32500948755 /* btn_cn.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB117DCD32500948755 /* btn_cn.png */; };
 		9ED97DB517DCD32500948755 /* btn_cn0.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB217DCD32500948755 /* btn_cn0.png */; };
 		9ED97DB617DCD32500948755 /* btn_cn1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB317DCD32500948755 /* btn_cn1.png */; };
@@ -857,6 +859,10 @@
 		9E836BCD17DBC53D000397D2 /* GameOverScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameOverScene.h; path = Classes/GameOverScene.h; sourceTree = "<group>"; };
 		9E836BCF17DC26FF000397D2 /* SvrLogic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SvrLogic.cpp; sourceTree = "<group>"; };
 		9E836BD017DC26FF000397D2 /* SvrLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SvrLogic.h; sourceTree = "<group>"; };
+		9E92C90B17E0DF5000BC4157 /* CThreadManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CThreadManager.cpp; sourceTree = "<group>"; };
+		9E92C90C17E0DF5000BC4157 /* CThreadManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CThreadManager.h; sourceTree = "<group>"; };
+		9E92C90E17E0E06D00BC4157 /* CThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CThread.cpp; sourceTree = "<group>"; };
+		9E92C90F17E0E06D00BC4157 /* CThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CThread.h; sourceTree = "<group>"; };
 		9ED97DB117DCD32500948755 /* btn_cn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_cn.png; path = Resources/btn_cn.png; sourceTree = "<group>"; };
 		9ED97DB217DCD32500948755 /* btn_cn0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_cn0.png; path = Resources/btn_cn0.png; sourceTree = "<group>"; };
 		9ED97DB317DCD32500948755 /* btn_cn1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_cn1.png; path = Resources/btn_cn1.png; sourceTree = "<group>"; };
@@ -2029,6 +2035,8 @@
 		9E836BAB17DB3262000397D2 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				9E92C90E17E0E06D00BC4157 /* CThread.cpp */,
+				9E92C90F17E0E06D00BC4157 /* CThread.h */,
 				9E836BCC17DBC53D000397D2 /* GameOverScene.cpp */,
 				9E836BCD17DBC53D000397D2 /* GameOverScene.h */,
 				9E836BAD17DB3262000397D2 /* AppDelegate.cpp */,
@@ -2039,6 +2047,8 @@
 				9E836BC017DB6FF9000397D2 /* MapLogic.h */,
 				9E836BCF17DC26FF000397D2 /* SvrLogic.cpp */,
 				9E836BD017DC26FF000397D2 /* SvrLogic.h */,
+				9E92C90B17E0DF5000BC4157 /* CThreadManager.cpp */,
+				9E92C90C17E0DF5000BC4157 /* CThreadManager.h */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -2367,6 +2377,8 @@
 				9E836BC117DB6FF9000397D2 /* MapLogic.cpp in Sources */,
 				9E836BCE17DBC53D000397D2 /* GameOverScene.cpp in Sources */,
 				9E836BD117DC26FF000397D2 /* SvrLogic.cpp in Sources */,
+				9E92C90D17E0DF5000BC4157 /* CThreadManager.cpp in Sources */,
+				9E92C91017E0E06D00BC4157 /* CThread.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
