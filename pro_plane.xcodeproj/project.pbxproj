@@ -269,6 +269,18 @@
 		9E836BBA17DB4855000397D2 /* plane.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BB917DB4855000397D2 /* plane.png */; };
 		9E836BBC17DB485E000397D2 /* table9x9.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BBB17DB485E000397D2 /* table9x9.png */; };
 		9E836BBE17DB4C02000397D2 /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BBD17DB4C02000397D2 /* background.png */; };
+		9E836BC117DB6FF9000397D2 /* MapLogic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BBF17DB6FF9000397D2 /* MapLogic.cpp */; };
+		9E836BC317DB8E52000397D2 /* table11x13.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BC217DB8E52000397D2 /* table11x13.png */; };
+		9E836BC517DB8FFF000397D2 /* plane2.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BC417DB8FFF000397D2 /* plane2.png */; };
+		9E836BC817DB9BD7000397D2 /* rotare_l.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BC617DB9BD7000397D2 /* rotare_l.png */; };
+		9E836BC917DB9BD7000397D2 /* rotare_r.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BC717DB9BD7000397D2 /* rotare_r.png */; };
+		9E836BCB17DBA712000397D2 /* boom.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E836BCA17DBA712000397D2 /* boom.png */; };
+		9E836BCE17DBC53D000397D2 /* GameOverScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BCC17DBC53D000397D2 /* GameOverScene.cpp */; };
+		9E836BD117DC26FF000397D2 /* SvrLogic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E836BCF17DC26FF000397D2 /* SvrLogic.cpp */; };
+		9ED97DB417DCD32500948755 /* btn_cn.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB117DCD32500948755 /* btn_cn.png */; };
+		9ED97DB517DCD32500948755 /* btn_cn0.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB217DCD32500948755 /* btn_cn0.png */; };
+		9ED97DB617DCD32500948755 /* btn_cn1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB317DCD32500948755 /* btn_cn1.png */; };
+		9ED97DB817DCDBBF00948755 /* btn_online.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ED97DB717DCDBBF00948755 /* btn_online.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -834,6 +846,21 @@
 		9E836BB917DB4855000397D2 /* plane.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = plane.png; path = Resources/plane.png; sourceTree = "<group>"; };
 		9E836BBB17DB485E000397D2 /* table9x9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = table9x9.png; path = Resources/table9x9.png; sourceTree = "<group>"; };
 		9E836BBD17DB4C02000397D2 /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = background.png; path = Resources/background.png; sourceTree = "<group>"; };
+		9E836BBF17DB6FF9000397D2 /* MapLogic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MapLogic.cpp; sourceTree = "<group>"; };
+		9E836BC017DB6FF9000397D2 /* MapLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapLogic.h; sourceTree = "<group>"; };
+		9E836BC217DB8E52000397D2 /* table11x13.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = table11x13.png; path = Resources/table11x13.png; sourceTree = "<group>"; };
+		9E836BC417DB8FFF000397D2 /* plane2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = plane2.png; path = Resources/plane2.png; sourceTree = "<group>"; };
+		9E836BC617DB9BD7000397D2 /* rotare_l.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = rotare_l.png; path = Resources/rotare_l.png; sourceTree = "<group>"; };
+		9E836BC717DB9BD7000397D2 /* rotare_r.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = rotare_r.png; path = Resources/rotare_r.png; sourceTree = "<group>"; };
+		9E836BCA17DBA712000397D2 /* boom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = boom.png; path = Resources/boom.png; sourceTree = "<group>"; };
+		9E836BCC17DBC53D000397D2 /* GameOverScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GameOverScene.cpp; path = Classes/GameOverScene.cpp; sourceTree = "<group>"; };
+		9E836BCD17DBC53D000397D2 /* GameOverScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameOverScene.h; path = Classes/GameOverScene.h; sourceTree = "<group>"; };
+		9E836BCF17DC26FF000397D2 /* SvrLogic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SvrLogic.cpp; sourceTree = "<group>"; };
+		9E836BD017DC26FF000397D2 /* SvrLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SvrLogic.h; sourceTree = "<group>"; };
+		9ED97DB117DCD32500948755 /* btn_cn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_cn.png; path = Resources/btn_cn.png; sourceTree = "<group>"; };
+		9ED97DB217DCD32500948755 /* btn_cn0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_cn0.png; path = Resources/btn_cn0.png; sourceTree = "<group>"; };
+		9ED97DB317DCD32500948755 /* btn_cn1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_cn1.png; path = Resources/btn_cn1.png; sourceTree = "<group>"; };
+		9ED97DB717DCDBBF00948755 /* btn_online.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = btn_online.png; path = Resources/btn_online.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -904,6 +931,15 @@
 		9E83684E17DB325C000397D2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9ED97DB717DCDBBF00948755 /* btn_online.png */,
+				9ED97DB117DCD32500948755 /* btn_cn.png */,
+				9ED97DB217DCD32500948755 /* btn_cn0.png */,
+				9ED97DB317DCD32500948755 /* btn_cn1.png */,
+				9E836BCA17DBA712000397D2 /* boom.png */,
+				9E836BC617DB9BD7000397D2 /* rotare_l.png */,
+				9E836BC717DB9BD7000397D2 /* rotare_r.png */,
+				9E836BC417DB8FFF000397D2 /* plane2.png */,
+				9E836BC217DB8E52000397D2 /* table11x13.png */,
 				9E836BBD17DB4C02000397D2 /* background.png */,
 				9E836BBB17DB485E000397D2 /* table9x9.png */,
 				9E836BB917DB4855000397D2 /* plane.png */,
@@ -1993,10 +2029,16 @@
 		9E836BAB17DB3262000397D2 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				9E836BAC17DB3262000397D2 /* AppDelegate.h */,
+				9E836BCC17DBC53D000397D2 /* GameOverScene.cpp */,
+				9E836BCD17DBC53D000397D2 /* GameOverScene.h */,
 				9E836BAD17DB3262000397D2 /* AppDelegate.cpp */,
-				9E836BAF17DB3262000397D2 /* HelloWorldScene.h */,
+				9E836BAC17DB3262000397D2 /* AppDelegate.h */,
 				9E836BB017DB3262000397D2 /* HelloWorldScene.cpp */,
+				9E836BAF17DB3262000397D2 /* HelloWorldScene.h */,
+				9E836BBF17DB6FF9000397D2 /* MapLogic.cpp */,
+				9E836BC017DB6FF9000397D2 /* MapLogic.h */,
+				9E836BCF17DC26FF000397D2 /* SvrLogic.cpp */,
+				9E836BD017DC26FF000397D2 /* SvrLogic.h */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -2070,6 +2112,15 @@
 				9E836BBA17DB4855000397D2 /* plane.png in Resources */,
 				9E836BBC17DB485E000397D2 /* table9x9.png in Resources */,
 				9E836BBE17DB4C02000397D2 /* background.png in Resources */,
+				9E836BC317DB8E52000397D2 /* table11x13.png in Resources */,
+				9E836BC517DB8FFF000397D2 /* plane2.png in Resources */,
+				9E836BC817DB9BD7000397D2 /* rotare_l.png in Resources */,
+				9E836BC917DB9BD7000397D2 /* rotare_r.png in Resources */,
+				9E836BCB17DBA712000397D2 /* boom.png in Resources */,
+				9ED97DB417DCD32500948755 /* btn_cn.png in Resources */,
+				9ED97DB517DCD32500948755 /* btn_cn0.png in Resources */,
+				9ED97DB617DCD32500948755 /* btn_cn1.png in Resources */,
+				9ED97DB817DCDBBF00948755 /* btn_online.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2313,6 +2364,9 @@
 				9E836BA717DB3262000397D2 /* b2Rope.cpp in Sources */,
 				9E836BAE17DB3262000397D2 /* AppDelegate.cpp in Sources */,
 				9E836BB117DB3262000397D2 /* HelloWorldScene.cpp in Sources */,
+				9E836BC117DB6FF9000397D2 /* MapLogic.cpp in Sources */,
+				9E836BCE17DBC53D000397D2 /* GameOverScene.cpp in Sources */,
+				9E836BD117DC26FF000397D2 /* SvrLogic.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2448,6 +2502,7 @@
 				9E836BB817DB3262000397D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -7,11 +7,15 @@
 //
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
+#include "GameOverScene.h"
+#include "SvrLogic.h"
 
 using namespace cocos2d;
 using namespace CocosDenshion;
 
 #define PTM_RATIO 32
+
+CSvrLogic* g_svr;
 
 enum {
     kTagParentNode = 1,
@@ -74,102 +78,204 @@ HelloWorld::HelloWorld()
     setTouchEnabled( true );
     //启动重力感应
     setAccelerometerEnabled( false );
+    
 
     CCSize s = CCDirector::sharedDirector()->getWinSize();
     // init physics
     //this->initPhysics();
+    
 
+    //add background png
     CCSprite* pSprbackground = CCSprite::create("background.png");
     pSprbackground->setPosition( ccp(s.width/2, s.height/2) );
     pSprbackground->setScaleX(s.width/pSprbackground->getContentSize().width);
     pSprbackground->setScaleY(s.height/pSprbackground->getContentSize().height);
     this->addChild(pSprbackground, 0);
     
-    // position the sprite on the center of the screen
-    CCSprite* pSprite = CCSprite::create("table9x9.png");
+    
+    //add map
+    CCSprite* pSprite = CCSprite::create("table11x13.png");
+    _scalex = s.width/pSprite->getContentSize().width;
+    _scaley = s.height/pSprite->getContentSize().height;
     pSprite->setPosition( ccp(s.width/2, s.height/2) );
-    pSprite->setScaleX(s.width/pSprite->getContentSize().width);
-    pSprite->setScaleY(s.height/pSprite->getContentSize().height);
+    pSprite->setScaleX(_scalex);
+    pSprite->setScaleY(_scaley);
     this->addChild(pSprite, 1);
 
 
-    CCLabelTTF *label = CCLabelTTF::create("Tap \nscreen", "Marker Felt", 32);
+    //add label
+    CCLabelTTF *label = CCLabelTTF::create("正牌打飞机", "Marker Felt", 20*_scalex);
     addChild(label, 2);
     label->setColor(ccc3(0,0,255));
-    label->setPosition(ccp( s.width/2, s.height-50));
+    label->setPosition(ccp( s.width - label->getContentSize().width/2-10*_scalex, s.height-50*_scalex));
     
     
-    // position the sprite on the center of the screen
-    _plane = CCSprite::create("plane.png");
-    _plane->setPosition(ccp(s.width - _plane->getContentSize().width/2, s.height - _plane->getContentSize().height/2));
+    // add plane
+    _plane = CCSprite::create("plane2.png");
+    _plane->setScaleX(_scalex);
+    _plane->setScaleY(_scaley);
+    _plane->setPosition(ccp((s.width - _plane->getContentSize().width/2*_scalex),
+                            (_plane->getContentSize().height/2*_scaley + 110*_scaley)));
     this->addChild(_plane, 3);
+    
+    
+    //add rotate mune
+    CCMenuItemImage *protateRight = CCMenuItemImage::create(
+                                                          "rotare_r.png",
+                                                          "rotare_r.png",
+                                                          this,
+                                                          menu_selector(HelloWorld::menuRotateRightCallback) );
+    protateRight->setPosition( ccp(CCDirector::sharedDirector()->getWinSize().width - 35*_scalex, 80*_scaley) );
+    CCMenu* pMenuRight = CCMenu::create(protateRight, NULL);
+    pMenuRight->setPosition( CCPointZero );
+    this->addChild(pMenuRight, 4);
+    
+    
+    //add rotate mune
+    CCMenuItemImage *protateLeft = CCMenuItemImage::create(
+    "rotare_l.png",
+                                                            "rotare_l.png",
+                                                            this,
+                                                            menu_selector(HelloWorld::menuRotateLeftCallback));
+    protateLeft->setPosition( ccp(CCDirector::sharedDirector()->getWinSize().width - 90*_scalex, 80*_scaley) );
+    CCMenu* pMenuLeft = CCMenu::create(protateLeft, NULL);
+    pMenuLeft->setPosition( CCPointZero );
+    this->addChild(pMenuLeft, 5);
+
+
+    // add boom
+    _boom = CCSprite::create("boom.png");
+    _boom->setScaleX(_scalex);
+    _boom->setScaleY(_scaley);
+    _boom->setPosition(ccp((s.width - _boom->getContentSize().width/2*_scalex- 90*_scalex),
+                            (_boom->getContentSize().height/2*_scaley + 20)));
+    this->addChild(_boom, 6);
 
     
+    //init coor label
+    _coor = CCLabelTTF::create("炸弹坐标", "Marker Felt", 45*_scalex);
+    addChild(_coor, 9);
+    _coor->setVisible(false);
+    _coor->setColor(ccc3(0,0,7));
+    
+    
+    //init map logic
+    _maplogic = new CMapLogic(CCRectMake(28,15,322,275), 13, 11);
+    _maplogic->setScale(_scalex, _scaley);
+    _fDeltaAngle = 0;
+    
+    
+    //add text input
+    _nameText = CCTextFieldTTF::textFieldWithPlaceHolder(_name.c_str(), "Thonburi",20*_scalex);
+    _nameText->setPosition(ccp(s.width - _nameText->getContentSize().width/2-100,
+                               s.height-20));
+    addChild(_nameText, 8);
+    _nameText->setDelegate(this);
+    _nameText->setColor(ccc3(0,0,7));
+    
+    //add change name button
+    CCMenuItemImage *pbtn_cn = CCMenuItemImage::create("btn_cn0.png", "btn_cn.png", this,
+                                                        menu_selector(HelloWorld::btnChangeNameCallback));
+    pbtn_cn->setPosition( ccp(_nameText->getPosition().x-60*_scalex, _nameText->getPosition().y) );
+    _pMenuCn = CCMenu::create(pbtn_cn, NULL);
+    _pMenuCn->setPosition( CCPointZero );
+    pbtn_cn->setScale(_scalex);
+    pbtn_cn->setVisible(true);
+    addChild(_pMenuCn, 9);
+    
+    
+    //add get online button
+    CCMenuItemImage *pbtn_ol = CCMenuItemImage::create("btn_online.png", "btn_online.png", this,
+                                                       menu_selector(HelloWorld::btnGetOnlineCallback));
+    pbtn_ol->setPosition( ccp(_nameText->getPosition().x-260*_scalex, _nameText->getPosition().y) );
+    pbtn_ol->setScale(_scalex);
+    CCMenu* _pMenuOnline = CCMenu::create(pbtn_ol, NULL);
+    _pMenuOnline->setPosition( CCPointZero );
+    addChild(_pMenuOnline, 10);
+
+    
+    //add _layerOnline
+    _layerOnline = new CCLayer();
+    
+    
+    addChild(_layerOnline,20);
+    _layerOnline->setPosition(s.width/2, s.height/2);
+    _layerOnline->setVisible(false);
+    
+    //add background png
+    CCSprite* pSprbackground2 = CCSprite::create("background.png");
+    pSprbackground2->setPosition(CCPointZero );
+    pSprbackground2->setScaleX(0.5f);
+    pSprbackground2->setScaleY(0.5f);
+    _layerOnline->addChild(pSprbackground2, 0);
+    
+    
+    //add label
+    _labelOnline = CCLabelTTF::create("正牌打飞机", "Marker Felt", 20*_scalex);
+    _labelOnline->setColor(ccc3(0,255,0));
+    _labelOnline->setPosition(CCPointZero);
+    _layerOnline->addChild(_labelOnline, 2);
+    
+    
+    //init svr logic
+    g_svr = new CSvrLogic();
+    g_svr->regScene(this);
+    g_svr->initSvr("106.187.89.124", 3490);
+    _name = "ben5";
+    _request = "test";
+    g_svr->doSvrCmd("reg", _name);
+    
     scheduleUpdate();
+    
 }
+
+
+bool HelloWorld::onTextFieldAttachWithIME(CCTextFieldTTF * sender)
+{
+    CCLOG("启动输入");
+    return false;
+    //return true;(不启动)
+}
+//    当用户关闭虚拟键盘的时候回调函数
+bool HelloWorld::onTextFieldDetachWithIME(CCTextFieldTTF * sender)
+{
+    CCLOG("关闭输入");
+    g_svr->doSvrCmd("reg", _nameText->getString());
+    return false;
+    //return true;(不关闭)
+}
+//    当用户进行输入 虚拟键盘的时候回调函数
+bool  HelloWorld::onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
+{
+    CCLOG("输入字符:%s", text);
+    //_nameText->setString(text);
+    return false;
+    //return true;(不输入)
+}
+//    当用户进行删除文字 虚拟键盘的时候回调函数
+bool HelloWorld::onTextFieldDeleteBackward(CCTextFieldTTF * sender, const char * delText, int nLen)
+{
+    CCLOG("删除字符");
+    return false;
+    //return true;(不删除)
+}
+
 
 HelloWorld::~HelloWorld()
 {
-    delete world;
-    world = NULL;
+    if( _maplogic )
+    {
+        delete _maplogic;
+        _maplogic = NULL;
+    }
+    
+    if( g_svr )
+    {
+        delete g_svr;
+        g_svr = NULL;
+    }
     
     //delete m_debugDraw;
-}
-
-void HelloWorld::initPhysics()
-{
-
-    CCSize s = CCDirector::sharedDirector()->getWinSize();
-
-    b2Vec2 gravity;
-    gravity.Set(0.0f, -10.0f);
-    world = new b2World(gravity);
-
-    // Do we want to let bodies sleep?
-    world->SetAllowSleeping(true);
-
-    world->SetContinuousPhysics(true);
-
-//     m_debugDraw = new GLESDebugDraw( PTM_RATIO );
-//     world->SetDebugDraw(m_debugDraw);
-
-    uint32 flags = 0;
-    flags += b2Draw::e_shapeBit;
-    //        flags += b2Draw::e_jointBit;
-    //        flags += b2Draw::e_aabbBit;
-    //        flags += b2Draw::e_pairBit;
-    //        flags += b2Draw::e_centerOfMassBit;
-    //m_debugDraw->SetFlags(flags);
-
-
-    // Define the ground body.
-    b2BodyDef groundBodyDef;
-    groundBodyDef.position.Set(0, 0); // bottom-left corner
-
-    // Call the body factory which allocates memory for the ground body
-    // from a pool and creates the ground box shape (also from a pool).
-    // The body is also added to the world.
-    b2Body* groundBody = world->CreateBody(&groundBodyDef);
-
-    // Define the ground box shape.
-    b2EdgeShape groundBox;
-
-    // bottom
-
-    groundBox.Set(b2Vec2(0,0), b2Vec2(s.width/PTM_RATIO,0));
-    groundBody->CreateFixture(&groundBox,0);
-
-    // top
-    groundBox.Set(b2Vec2(0,s.height/PTM_RATIO), b2Vec2(s.width/PTM_RATIO,s.height/PTM_RATIO));
-    groundBody->CreateFixture(&groundBox,0);
-
-    // left
-    groundBox.Set(b2Vec2(0,s.height/PTM_RATIO), b2Vec2(0,0));
-    groundBody->CreateFixture(&groundBox,0);
-
-    // right
-    groundBox.Set(b2Vec2(s.width/PTM_RATIO,s.height/PTM_RATIO), b2Vec2(s.width/PTM_RATIO,0));
-    groundBody->CreateFixture(&groundBox,0);
 }
 
 void HelloWorld::draw()
@@ -190,93 +296,12 @@ void HelloWorld::draw()
     kmGLPopMatrix();
 }
 
-void HelloWorld::addNewSpriteAtPosition(CCPoint p)
-{
-    return;
-    CCLOG("Add sprite %0.2f x %02.f",p.x,p.y);
-    CCNode* parent = getChildByTag(kTagParentNode);
-    
-    //We have a 64x64 sprite sheet with 4 different 32x32 images.  The following code is
-    //just randomly picking one of the images
-    int idx = (CCRANDOM_0_1() > .5 ? 0:1);
-    int idy = (CCRANDOM_0_1() > .5 ? 0:1);
-    PhysicsSprite *sprite = new PhysicsSprite();
-    sprite->initWithTexture(m_pSpriteTexture, CCRectMake(32 * idx,32 * idy,32,32));
-    sprite->autorelease();
-    
-    parent->addChild(sprite);
-    
-    sprite->setPosition( CCPointMake( p.x, p.y) );
-    
-    // Define the dynamic body.
-    //Set up a 1m squared box in the physics world
-//    b2BodyDef bodyDef;
-//    bodyDef.type = b2_dynamicBody;
-//    bodyDef.position.Set(p.x/PTM_RATIO, p.y/PTM_RATIO);
-//    
-//    b2Body *body = world->CreateBody(&bodyDef);
-//    
-//    // Define another box shape for our dynamic body.
-//    b2PolygonShape dynamicBox;
-//    dynamicBox.SetAsBox(.5f, .5f);//These are mid points for our 1m box
-//    
-//    // Define the dynamic body fixture.
-//    b2FixtureDef fixtureDef;
-//    fixtureDef.shape = &dynamicBox;    
-//    fixtureDef.density = 1.0f;
-//    fixtureDef.friction = 0.3f;
-//    body->CreateFixture(&fixtureDef);
-//    
-//    sprite->setPhysicsBody(body);
-}
-
 
 void HelloWorld::update(float dt)
 {
-    //It is recommended that a fixed time step is used with Box2D for stability
-    //of the simulation, however, we are using a variable time step here.
-    //You need to make an informed choice, the following URL is useful
-    //http://gafferongames.com/game-physics/fix-your-timestep/
-    
-    int velocityIterations = 8;
-    int positionIterations = 1;
-    
-    // Instruct the world to perform a single step of simulation. It is
-    // generally best to keep the time step and iterations fixed.
-    //world->Step(dt, velocityIterations, positionIterations);
-    
-    //Iterate over the bodies in the physics world
-//    for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
-//    {
-//        if (b->GetUserData() != NULL) {
-//            //Synchronize the AtlasSprites position and rotation with the corresponding body
-//            CCSprite* myActor = (CCSprite*)b->GetUserData();
-//            myActor->setPosition( CCPointMake( b->GetPosition().x * PTM_RATIO, b->GetPosition().y * PTM_RATIO) );
-//            myActor->setRotation( -1 * CC_RADIANS_TO_DEGREES(b->GetAngle()) );
-//        }    
-//    }
+
 }
 
-//void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
-//{
-//    //Add a new body/atlas sprite at the touched location
-//    CCSetIterator it;
-//    CCTouch* touch;
-//    
-//    for( it = touches->begin(); it != touches->end(); it++) 
-//    {
-//        touch = (CCTouch*)(*it);
-//        
-//        if(!touch)
-//            break;
-//        
-//        CCPoint location = touch->getLocationInView();
-//        
-//        location = CCDirector::sharedDirector()->convertToGL(location);
-//        
-//        addNewSpriteAtPosition( location );
-//    }
-//}
 
 CCScene* HelloWorld::scene()
 {
@@ -293,55 +318,81 @@ CCScene* HelloWorld::scene()
 
 void HelloWorld::ccTouchesBegan(CCSet* pTouches, CCEvent* event)
 {
+    //获取触点集合
     CCTouch* pTouch = (CCTouch*)(pTouches->anyObject());
-    CCPoint location = pTouch->getLocationInView();
     
+    //获得针对屏幕的坐标
+    CCPoint location = pTouch->getLocationInView();
     location.y = (location.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
-    CCRect* pTextureRect = new CCRect(_plane->getPositionX(), _plane->getPositionY(), _plane->getContentSize().width, _plane->getContentSize().height);
+
+    //计算飞机碰触矩形
+    CCRect* _planeTextureRect = new CCRect(_plane->getPositionX() - _plane->getContentSize().width/2*_scalex,
+                                      _plane->getPositionY() - _plane->getContentSize().height/2*_scaley,
+                                      _plane->getContentSize().width*_scalex, _plane->getContentSize().height*_scaley);
+    
+    //计算炸弹碰触矩形
+    CCRect* _boomTextureRect = new CCRect(_boom->getPositionX() - _boom->getContentSize().width/2*_scalex,
+                                           _boom->getPositionY() - _boom->getContentSize().height/2*_scaley,
+                                           _boom->getContentSize().width*_scalex, _boom->getContentSize().height*_scaley);
     
     for (CCSetIterator iter = pTouches->begin(); iter != pTouches->end(); ++iter)
     {
-        if (pTextureRect->containsPoint(location))
+//        CCLog("_planeTextureRect minx:%f maxx:%f miny:%f maxy:%f",
+//              _planeTextureRect->getMinX(), _planeTextureRect->getMaxX(),
+//              _planeTextureRect->getMinY(), _planeTextureRect->getMaxY());
+        if (_planeTextureRect->containsPoint(location))
         {
-            CCLog("Touched Sprite");
-            HelloWorld::setTouched(_planeTouched, 0);
+            CCLog("Touched Plane Sprite");
+            _planeTouched = true;
         }
         
-        else if (!pTextureRect->containsPoint(location))
+        if (_boomTextureRect->containsPoint(location))
         {
-            CCLog("Touched Layer");
-            HelloWorld::setTouched(_planeTouched, 1);
+            CCLog("Touched Boom Sprite");
+            _boomTouched = true;
         }
+        
     }
 }
 
 void HelloWorld::ccTouchesMoved(CCSet* pTouches, CCEvent* event)
 {
-    CCRect* pTextureRect = new CCRect(_plane->getPositionX(), _plane->getPositionY(), _plane->getContentSize().width, _plane->getContentSize().height);
-    
+    //获取触点集合
     CCTouch* pTouch = (CCTouch*)(pTouches->anyObject());
+    
+    //获得针对屏幕的坐标
     CCPoint location = pTouch->getLocationInView();
     location.y = (location.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
+    CCPoint realPosition;
     
     for (CCSetIterator iter = pTouches->begin(); iter != pTouches->end(); ++iter)
     {
-        if (pTextureRect->containsPoint(location) && _planeTouched == true)
+        if (_planeTouched == true)
         {
-            CCPoint oldTouchLocation = pTouch->getPreviousLocationInView();
-            oldTouchLocation.y = (oldTouchLocation.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
-            CCPoint translation = ccpSub(location, oldTouchLocation);
-            //translation.y = translation.y * (-1);
-            CCPoint newPosition = ccpAdd(_plane->getPosition(), translation);
-            _plane->setPosition(newPosition);
+            _maplogic->getMapPosition(_plane, location, realPosition);
+            _plane->setPosition(realPosition);
         }
         
-//        else if (!pTextureRect->containsPoint(location) && _planeTouched == false)
-//        {
-//            CCPoint oldTouchLocation = pTouch->getPreviousLocationInView();
-//            oldTouchLocation.y = (oldTouchLocation.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
-//            CCPoint translation = ccpSub(location, oldTouchLocation);
-//            this->setPosition(ccpAdd(this->getPosition(), translation));
-//        }
+        
+        if (_boomTouched == true)
+        {
+            _maplogic->getMapPosition(_boom, location, realPosition);
+            float itemWidth = 0, itemHeigth = 0;
+            _maplogic->getItemSize(itemWidth, itemHeigth);
+            _boom->setPosition(realPosition);
+            realPosition.x += (2*itemWidth*_scalex);
+            realPosition.y += (2*itemHeigth*_scaley);
+            _coor->setVisible(true);
+            
+            int coorX = 0, coorY = 0;
+            _maplogic->getCoordinate(coorX, coorY);
+            char szCoor[256] = {0};
+            snprintf(szCoor, sizeof(szCoor), "(%d,%d)", coorX, coorY);
+            CCLOG("szCoor %s", szCoor);
+            _coor->setString(szCoor);
+            _coor->setPosition(realPosition);
+        }
+
     }
 }
 
@@ -349,26 +400,89 @@ void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
 {
     if (_planeTouched == true)
     {
-        HelloWorld::setTouched(_planeTouched, 1);
+        _planeTouched = false;
+        _maplogic->updateMap();
+        _maplogic->displayMap();
     }
     
-    else if (_planeTouched == false)
+    if (_boomTouched == true)
     {
-        HelloWorld::setTouched(_planeTouched, 0);
+        _boomTouched = false;
+        _coor->setVisible(false);
+        
+        CCSize s = CCDirector::sharedDirector()->getWinSize();
+        _boom->setPosition(ccp((s.width - _boom->getContentSize().width/2*_scalex- 90*_scalex),
+                               (_boom->getContentSize().height/2*_scaley + 20)));
+        
+        int coorX = 0, coorY = 0;
+        _maplogic->getCoordinate(coorX, coorY);
+        
+        g_svr->doSvrCmd(_name, _request);
+        
+        FIGHT_STATUS re = _maplogic->hitMap(coorX, coorY);
+        if( FIGHT_STATUS_WIN == re )
+        {
+            GameOverScene *gameOverScene = GameOverScene::create();
+            gameOverScene->getLayer()->getLabel()->setString("You Win!");
+            CCDirector::sharedDirector()->replaceScene(gameOverScene);
+        }
+        
+        
+        
+    }
+    
+}
+
+
+void HelloWorld::menuRotateRightCallback(CCObject* pSender)
+{
+    _fDeltaAngle+=90;
+    _plane->runAction(CCSequence::create(
+                                         CCRotateTo::create(0.5f,_fDeltaAngle),
+                                         NULL));
+}
+
+
+void HelloWorld::menuRotateLeftCallback(CCObject* pSender)
+{
+    _fDeltaAngle-=90;
+    _plane->runAction(CCSequence::create(
+                                         CCRotateTo::create(0.5f,_fDeltaAngle),
+                                         NULL));
+}
+
+void HelloWorld::btnChangeNameCallback(CCObject* pSender)
+{
+    _nameText->attachWithIME();
+}
+
+void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
+{
+    if( !_layerOnline->isVisible() )
+    {
+        _layerOnline->setVisible(true);
+        g_svr->doSvrCmd("onlineinfo", "ben");
+        CCLOG("btnGetOnlineCallback _labelOnline content:%s", _labelOnline->getString());
+    }
+    else
+    {
+        _layerOnline->setVisible(false);
     }
 }
 
-void HelloWorld::setTouched(bool &spriteTouched, int condition)
+
+void HelloWorld::setOnlineLable(const std::string content)
 {
-    if (condition == 0)
+    CCLOG("setOnlineLable content:%s", content.c_str() );
+    if( _labelOnline )
     {
-        spriteTouched = true;
-        CCLog("Set to True");
+        _labelOnline->setString(content.c_str());
+        CCLOG("_labelOnline content:%s", _labelOnline->getString());
     }
-    
-    else if (condition == 1)
+    else
     {
-        spriteTouched = false;
-        CCLog("Set to False");
+        CCLOG("_labelOnline is null");
     }
+    CCLOG("setOnlineLable end");
 }
+
