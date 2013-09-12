@@ -29,6 +29,7 @@ using namespace std;
 
 CSvrLogic::CSvrLogic()
 {
+    _bready = false;
 }
 
 CSvrLogic::~CSvrLogic()
@@ -131,81 +132,7 @@ int CSvrLogic::initSvr(const std::string ip, const int port )
 	pManager->regFd(_clientfd);
 	pManager->PostSem();
     
-//    char *temp;
-//    temp=(char *)malloc(1024);
-//    memset(temp,0,1024);
-//    key_t shmid;
-//    if((shmid = shmget(((key_t)0),1024,S_IRUSR|S_IWUSR)) == -1)
-//    {
-//        CCLOG("ceate shm error!");
-//        return -2;
-//    }
-//    
-//    char* shAddr = (char*)shmat(shmid, 0, 0);
-//    
-//    pid_t pid = fork();//创建子进程
-//    while(1)
-//    {
-//        if(pid == 0)
-//        {
-//            //子进程用于接收信息
-//            memset(buf,0,100);
-//            if(recv(_clientfd,buf,100,0) <= 0)
-//            {
-//                CCLOG("recv:");
-//                close(_clientfd);
-//                raise(SIGSTOP);
-//                exit(1);
-//            }
-//            CCLOG("server cmd response:%s\n",buf);
-//            
-//            memset(shAddr, '\0', 1024);
-//            strncpy(shAddr, buf, 1024);
-//            CCLOG("shAddr:%s\n",shAddr);
-//            
-//        }
-//        else
-//        {
-//            if(strcmp(temp,shAddr) != 0)
-//            {
-//                strcpy(temp,shAddr);
-//                printf("shAddr:%s\n",temp);
-//                
-//                std::string cmd, reps;
-//                std::string rbody = std::string(temp);
-//                
-//                int r = splitResp(rbody, cmd, reps);
-//                CCLOG("r:%d cmd:%s reps:%s", r, cmd.c_str(), reps.c_str());
-//                if( 0 == r )
-//                {
-//                    if( "onlineinfo" == cmd )
-//                    {
-//                        CCLOG("do onlineinfo");
-//                        if( _helloworld )
-//                        {
-//                            _helloworld->setOnlineLable(reps);
-//                        }
-//                        else
-//                        {
-//                            CCLOG("_helloworld is null");
-//                        }
-//                        CCLOG("end onlineinfo");
-//                    }
-//                    else if( "" == cmd )
-//                    {
-//                        
-//                    }
-//                    else
-//                    {
-//                        CCLOG("can not found function for cmd %s", cmd.c_str());
-//                    }
-//                }
-//            }
-//
-//            return 0;
-//        }
-//    }
-    
+    _bready = true;    
     return 0;
 }
 
@@ -237,6 +164,12 @@ int CSvrLogic::doSvrCmd(std::string cmd, std::string request)
 
 int CSvrLogic::doSvrCmd(std::string cmd, std::string request, std::string& reps, bool bNeedResp)
 {
+    if( !_bready )
+    {
+        CCLOG("client fd is not ready!");
+        return -1;
+    }
+    
     int sendbytes;//定义客户端套接字
     char *buf;
     

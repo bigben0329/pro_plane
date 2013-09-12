@@ -169,9 +169,10 @@ HelloWorld::HelloWorld()
     _nameText = CCTextFieldTTF::textFieldWithPlaceHolder(_name.c_str(), "Thonburi",20*_scalex);
     _nameText->setPosition(ccp(s.width - _nameText->getContentSize().width/2-100,
                                s.height-20));
-    addChild(_nameText, 8);
     _nameText->setDelegate(this);
     _nameText->setColor(ccc3(0,0,7));
+    addChild(_nameText, 8);
+    
     
     //add change name button
     CCMenuItemImage *pbtn_cn = CCMenuItemImage::create("btn_cn0.png", "btn_cn.png", this,
@@ -193,6 +194,14 @@ HelloWorld::HelloWorld()
     _pMenuOnline->setPosition( CCPointZero );
     addChild(_pMenuOnline, 10);
 
+    
+    //add enemy text input
+    _nameEnemy = CCTextFieldTTF::textFieldWithPlaceHolder("对手", "Thonburi",15*_scalex);
+    _nameEnemy->setPosition(ccp( pbtn_ol->getPositionX()+60, pbtn_ol->getPositionY()));
+    _nameEnemy->setDelegate(this);
+    _nameEnemy->setColor(ccc3(0,0,7));
+    addChild(_nameEnemy, 11);
+    
     
     //add _layerOnline
     _layerOnline = new CCLayer();
@@ -220,7 +229,9 @@ HelloWorld::HelloWorld()
     //init svr logic
     g_svr = new CSvrLogic();
     g_svr->regScene(this);
-    g_svr->initSvr("106.187.89.124", 3490);
+    //g_svr->initSvr("106.187.89.124", 3490);
+    //g_svr->initSvr("172.25.32.144", 3490);
+    g_svr->initSvr("127.0.0.1", 3490);
     _name = "ben5";
     _request = "test";
     g_svr->doSvrCmd("reg", _name);
@@ -240,7 +251,19 @@ bool HelloWorld::onTextFieldAttachWithIME(CCTextFieldTTF * sender)
 bool HelloWorld::onTextFieldDetachWithIME(CCTextFieldTTF * sender)
 {
     CCLOG("关闭输入");
-    g_svr->doSvrCmd("reg", _nameText->getString());
+    if( sender == _nameText )
+    {
+        g_svr->doSvrCmd("reg", _nameText->getString());
+    }
+    
+    if( sender == _nameEnemy )
+    {
+        if( _nameEnemy->getString() != "" && _nameEnemy->getString()!="对手" )
+        {
+            g_svr->doSvrCmd("vs", _nameEnemy->getString());
+        }
+    }
+
     return false;
     //return true;(不关闭)
 }
@@ -427,8 +450,9 @@ void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
             CCDirector::sharedDirector()->replaceScene(gameOverScene);
         }
         
-        
-        
+        char pos[64] = {0};
+        snprintf(pos, sizeof(pos), "{\"x\":%d,\"y\":%d}", coorX, coorY);
+        g_svr->doSvrCmd("hit", pos);
     }
     
 }
@@ -461,6 +485,7 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
     if( !_layerOnline->isVisible() )
     {
         _layerOnline->setVisible(true);
+        _nameEnemy->attachWithIME();
         
         //std::string resp;
         //g_svr->doSvrCmd("onlineinfo", "ben", resp, true);
@@ -476,6 +501,7 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
 
 void HelloWorld::setOnlineLable(const std::string content)
 {
+    CCLOG("setOnlineLable begin content %s", content.c_str());
     if( _labelOnline )
     {
         _labelOnline->setString(content.c_str());
@@ -484,5 +510,7 @@ void HelloWorld::setOnlineLable(const std::string content)
     {
         CCLOG("_labelOnline is null");
     }
+    CCLOG("setOnlineLable end content %s", _labelOnline->getString());
+
 }
 

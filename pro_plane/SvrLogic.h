@@ -31,6 +31,7 @@ private:
     char* _rev_buf;
     int   _clientfd;//定义客户端套接字
     HelloWorld* _helloworld;
+    bool _bready;
     
 };
 

@@ -79,6 +79,7 @@ private:
     
     //text input
     cocos2d::CCTextFieldTTF* _nameText;
+    cocos2d::CCTextFieldTTF* _nameEnemy;
     cocos2d::CCMenu *_pMenuCn;
     
     //svr mode
