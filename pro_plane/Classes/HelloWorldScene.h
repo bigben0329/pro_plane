@@ -71,6 +71,8 @@ private:
     //layer上添加node函数
     void AddChild(CCNode *pChild);
     int _zOrder;   //自动天假纵坐标 自增长
+    void nodeDisp(CCNode* sender);
+    void alert(const char* msg);
     
     //天假炸弹sprite
     void addBoom(int x, int y, std::string boom);

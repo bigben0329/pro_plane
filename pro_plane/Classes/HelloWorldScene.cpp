@@ -149,10 +149,9 @@ HelloWorld::HelloWorld()
     //add text input
     _nameText = CCTextFieldTTF::textFieldWithPlaceHolder(_name.c_str(), "Thonburi",18*_scalex);
     _nameText->setPosition(ccp(s.width - _nameText->getContentSize().width/2-100,
-                               s.height-30));
+                               s.height-15*_scaley));
     _nameText->setDelegate(this);
     _nameText->setColor(ccc3(0,0,7));
-    _nameText->setString(_name.c_str());
     AddChild(_nameText);
     
     //add change name button
@@ -203,14 +202,15 @@ HelloWorld::HelloWorld()
     AddChild(_layerOnline);
     
     //add background png
-    CCSprite* pspbg = CCSprite::create("background.png");
+    CCSprite* pspbg = CCSprite::create("alert_background.png");
     pspbg->setPosition(CCPointZero );
+    pspbg->setOpacity(100);
     pspbg->setScaleX(0.5f);
     pspbg->setScaleY(0.5f);
     _layerOnline->addChild(pspbg, 0);
     
     _labelOnline = CCLabelTTF::create("AAA", "Marker Felt", 15*_scalex);
-    _labelOnline->setColor(ccc3(0,255,0));
+    _labelOnline->setColor(ccc3(125,70,50));
     _labelOnline->setPosition(CCPointZero);
     _layerOnline->addChild(_labelOnline, 2);
     
@@ -453,14 +453,6 @@ void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
         int coorX = 0, coorY = 0;
         _maplogic->getCoordinate(coorX, coorY);
         
-        FIGHT_STATUS re = _maplogic->hitMap(coorX, coorY);
-        if( FIGHT_STATUS_WIN == re )
-        {
-            GameOverScene *gameOverScene = GameOverScene::create();
-            gameOverScene->getLayer()->getLabel()->setString("You Win!");
-            CCDirector::sharedDirector()->replaceScene(gameOverScene);
-        }
-        
         char pos[64] = {0};
         snprintf(pos, sizeof(pos), "{\"x\":%d,\"y\":%d}", coorX, coorY);
         g_svr->doSvrCmd("hit", pos);
@@ -546,6 +538,12 @@ void HelloWorld::setBoomPos()
     char cStat[128] = {0};
     snprintf(cStat, sizeof(cStat), "{\"x\":%d,\"y\":%d,\"stat\":%d}", x, y, stat);
     g_svr->doSvrCmd("hitstat", std::string(cStat));
+    
+    
+    if( FIGHT_STATUS_WIN == stat )
+    {
+        alert("You Lost!");
+    }
 }
 
 void HelloWorld::setBoomStatPos()
@@ -559,9 +557,10 @@ void HelloWorld::setBoomStatPos()
     std::string boom;
     switch (stat) {
         case FIGHT_STATUS_WIN:
-            boom = "fire_o.png";
+        {
+            boom = "fire_o.png"; 
             break;
-        
+        }
         case FIGHT_STATUS_HURT:
             boom = "fire_r.png";
             break;
@@ -575,8 +574,25 @@ void HelloWorld::setBoomStatPos()
     }
     
     addBoom(x, y, boom);
+    
+    if( FIGHT_STATUS_WIN == stat )
+    {
+        alert("You Win!");
+    }
 }
 
+
+void HelloWorld::nodeDisp(CCNode* sender)
+{
+    sender->setVisible(false);
+}
+
+
+void HelloWorld::alert(const char* msg)
+{
+    _labelOnline->setString(msg);
+    _layerOnline->setVisible(true);
+}
 
 //-------------------------------------------------------------------------------
 void HelloWorld::AddChild(CCNode *pChild)
@@ -708,7 +724,6 @@ bool HelloWorld::onTextFieldDetachWithIME(CCTextFieldTTF * sender)
 bool  HelloWorld::onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
 {
     CCLOG("输入字符:%s", text);
-    //_nameText->setString(text);
     return false;
     //return true;(不输入)
 }
