@@ -68,7 +68,7 @@ int CMapLogic::getItemSize(float& width, float& heigth)
 }
 
 
-int CMapLogic::updateMap()
+int CMapLogic::updateMap(int der)
 {
     for(int x = 0 ; x < _row ; x++ )
     {
@@ -79,19 +79,92 @@ int CMapLogic::updateMap()
     }
     
     CCLOG("update _CoordX:%d _CoordY:%d", _CoordX, _CoordY);
-    //head
-    _MapStatus[_CoordX+2][_CoordY+3] = MAP_STATUS_HEAD;
+//#define DER_TOP   0
+//#define DER_DOWN  2
+//#define DER_RIGHT 1
+//#define DER_LEFT  3
+    switch (der) {
+        case 0:
+        {
+            //head
+            _MapStatus[_CoordX+2][_CoordY+3] = MAP_STATUS_HEAD;
+            
+            //body
+            _MapStatus[_CoordX][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+3][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+4][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+3][_CoordY] = MAP_STATUS_BODY;
+            
+            break;
+        }
+            
+        case 1:
+        {
+            //head
+            _MapStatus[_CoordX+3][_CoordY+2] = MAP_STATUS_HEAD;
+            
+            //body
+            _MapStatus[_CoordX][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX][_CoordY+3] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+3] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+4] = MAP_STATUS_BODY;
+            
+            break;
+        }
     
-    //body
-    _MapStatus[_CoordX][_CoordY+2] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+1][_CoordY+2] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+2][_CoordY+2] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+3][_CoordY+2] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+4][_CoordY+2] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+2][_CoordY+1] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+1][_CoordY] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+2][_CoordY] = MAP_STATUS_BODY;
-    _MapStatus[_CoordX+3][_CoordY] = MAP_STATUS_BODY;
+        case 2:
+        {
+            //head
+            _MapStatus[_CoordX+2][_CoordY] = MAP_STATUS_HEAD;
+            
+            //body
+            _MapStatus[_CoordX][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+3][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+4][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+3] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+3] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+3][_CoordY+3] = MAP_STATUS_BODY;
+            
+            break;
+        }
+            
+            
+        case 3:
+        {
+            //head
+            _MapStatus[_CoordX][_CoordY+2] = MAP_STATUS_HEAD;
+            
+            //body
+            _MapStatus[_CoordX+3][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+3][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+3][_CoordY+3] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+2][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+1] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+2] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+3] = MAP_STATUS_BODY;
+            _MapStatus[_CoordX+1][_CoordY+4] = MAP_STATUS_BODY;
+            
+            break;
+        }
+    
+        default:
+            break;
+    }
+
     
     return 0;
 }
@@ -127,7 +200,7 @@ int CMapLogic::getMapPosition(cocos2d::CCSprite* sprite,
     }
     else if( _rect.getMaxX() <= tempPos.x + sprite->getContentSize().width/2)
     {
-        _CoordX = _row - 1;
+        _CoordX = (int)((_rect.getMaxX() - sprite->getContentSize().width)/_itemWidth)-1;
         //CCLOG("rect max:%f sprite max x:%f", _rect.getMaxX(), tempPos.x + sprite->getContentSize().width/2);
         realPosition.x = _rect.getMaxX() - sprite->getContentSize().width/2;
     }
@@ -154,7 +227,7 @@ int CMapLogic::getMapPosition(cocos2d::CCSprite* sprite,
     }
     else if( _rect.getMaxY() <= tempPos.y + sprite->getContentSize().height/2)
     {
-        _CoordY = _colum - 1;
+        _CoordY = (int)((_rect.getMaxY() - sprite->getContentSize().height)/_itemHeight);
         CCLOG("rect maxy:%f sprite max y:%f", _rect.getMaxY(), tempPos.y + sprite->getContentSize().height/2);
         realPosition.y = _rect.getMaxY() - sprite->getContentSize().height/2;
     }

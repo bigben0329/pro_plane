@@ -8,11 +8,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "pro_plane/Classes/HelloWorldScene.cpp"
-         timestampString = "400703367.02404"
+         timestampString = "400869511.428392"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "97"
-         endingLineNumber = "97"
+         startingLineNumber = "60"
+         endingLineNumber = "60"
          landmarkName = "HelloWorld::HelloWorld()"
          landmarkType = "5">
       </FileBreakpoint>
@@ -21,11 +21,24 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "pro_plane/Classes/HelloWorldScene.cpp"
-         timestampString = "400703367.02404"
+         timestampString = "400869511.428392"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "154"
-         endingLineNumber = "154"
+         startingLineNumber = "145"
+         endingLineNumber = "145"
+         landmarkName = "HelloWorld::HelloWorld()"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "pro_plane/Classes/HelloWorldScene.cpp"
+         timestampString = "400869511.428392"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "79"
+         endingLineNumber = "79"
          landmarkName = "HelloWorld::HelloWorld()"
          landmarkType = "5">
       </FileBreakpoint>

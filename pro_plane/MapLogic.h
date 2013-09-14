@@ -51,7 +51,7 @@ public:
     int getCoordinate(int& x, int& y);
     int getItemSize(float& width, float& heigth);
     
-    int updateMap();
+    int updateMap(int der);
     void displayMap();
     
     FIGHT_STATUS hitMap(int x, int y);

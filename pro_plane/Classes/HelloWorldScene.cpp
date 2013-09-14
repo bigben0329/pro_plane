@@ -13,6 +13,7 @@
 using namespace cocos2d;
 using namespace CocosDenshion;
 
+
 #define PTM_RATIO 32
 
 #define COOR_BEGIN_X 28
@@ -20,61 +21,21 @@ using namespace CocosDenshion;
 #define COOR_MAP_WIDTH 322
 #define COOR_MAP_HEIGHT 275
 
+#define PLANE_DER_TOP   "plane_t.png"
+#define PLANE_DER_DOWN  "plane_d.png"
+#define PLANE_DER_RIGHT "plane_r.png"
+#define PLANE_DER_LEFT  "plane_l.png"
+
+#define DER_TOP   0
+#define DER_DOWN  2
+#define DER_RIGHT 1
+#define DER_LEFT  3
+
 CSvrLogic* g_svr;
 
 enum {
     kTagParentNode = 1,
 };
-
-PhysicsSprite::PhysicsSprite()
-: m_pBody(NULL)
-{
-
-}
-
-void PhysicsSprite::setPhysicsBody(b2Body * body)
-{
-    m_pBody = body;
-}
-
-// this method will only get called if the sprite is batched.
-// return YES if the physics values (angles, position ) changed
-// If you return NO, then nodeToParentTransform won't be called.
-bool PhysicsSprite::isDirty(void)
-{
-    return true;
-}
-
-// returns the transform matrix according the Chipmunk Body values
-CCAffineTransform PhysicsSprite::nodeToParentTransform(void)
-{
-    b2Vec2 pos  = m_pBody->GetPosition();
-
-    float x = pos.x * PTM_RATIO;
-    float y = pos.y * PTM_RATIO;
-
-    if ( isIgnoreAnchorPointForPosition() ) {
-        x += m_obAnchorPointInPoints.x;
-        y += m_obAnchorPointInPoints.y;
-    }
-
-    // Make matrix
-    float radians = m_pBody->GetAngle();
-    float c = cosf(radians);
-    float s = sinf(radians);
-
-    if( ! m_obAnchorPointInPoints.equals(CCPointZero) ){
-        x += c*-m_obAnchorPointInPoints.x + -s*-m_obAnchorPointInPoints.y;
-        y += s*-m_obAnchorPointInPoints.x + c*-m_obAnchorPointInPoints.y;
-    }
-
-    // Rot, Translate Matrix
-    m_sTransform = CCAffineTransformMake( c,  s,
-        -s,    c,
-        x,    y );
-
-    return m_sTransform;
-}
 
 HelloWorld::HelloWorld()
 {
@@ -86,6 +47,8 @@ HelloWorld::HelloWorld()
     _name = "ben5";
     _request = "test";
     _zOrder = 0;
+    _planeDer = DER_TOP;
+    _planePos = CCPointZero;
     
     CCSize s = CCDirector::sharedDirector()->getWinSize();
     
@@ -112,13 +75,41 @@ HelloWorld::HelloWorld()
     logo->setPosition(ccp( s.width - logo->getContentSize().width/2-10*_scalex, s.height-50*_scalex));
     AddChild(logo);
     
-    // add plane picture
-    _plane = CCSprite::create("plane2.png");
-    _plane->setScaleX(_scalex);
-    _plane->setScaleY(_scaley);
-    _plane->setPosition(ccp((s.width - _plane->getContentSize().width/2*_scalex),
-                            (_plane->getContentSize().height/2*_scaley + 110*_scaley)));
-    AddChild(_plane);
+    // add plane picture CCRect
+    _planecache = CCTextureCache::sharedTextureCache()->addImage("plane_full.png");
+    
+    _plane_t = CCSprite::createWithTexture(_planecache, CCRectMake(0, 0, 125, 100));
+    _plane_t->setScaleX(_scalex);
+    _plane_t->setScaleY(_scaley);
+    _plane_t->setPosition(ccp((s.width - _plane_t->getContentSize().width/2*_scalex),
+                            (_plane_t->getContentSize().height/2*_scaley + 110*_scaley)));
+    AddChild(_plane_t);
+    _plane_t->setVisible(true);
+    
+    _plane_d = CCSprite::createWithTexture(_planecache, CCRectMake(125, 0, 125, 100));
+    _plane_d->setScaleX(_scalex);
+    _plane_d->setScaleY(_scaley);
+    _plane_d->setPosition(ccp((s.width - _plane_d->getContentSize().width/2*_scalex),
+                            (_plane_d->getContentSize().height/2*_scaley + 110*_scaley)));
+    AddChild(_plane_d);
+    _plane_d->setVisible(false);
+    
+    _plane_l = CCSprite::createWithTexture(_planecache, CCRectMake(0, 100, 100, 125));
+    _plane_l->setScaleX(_scalex);
+    _plane_l->setScaleY(_scaley);
+    _plane_l->setPosition(ccp((s.width - _plane_l->getContentSize().width/2*_scalex),
+                            (_plane_l->getContentSize().height/2*_scaley + 110*_scaley)));
+    AddChild(_plane_l);
+    _plane_l->setVisible(false);
+    
+    _plane_r = CCSprite::createWithTexture(_planecache, CCRectMake(150, 101, 100, 120));
+    _plane_r->setScaleX(_scalex);
+    _plane_r->setScaleY(_scaley);
+    _plane_r->setPosition(ccp((s.width - _plane_r->getContentSize().width/2*_scalex),
+                            (_plane_r->getContentSize().height/2*_scaley + 110*_scaley)));
+    AddChild(_plane_r);
+    _plane_r->setVisible(false);
+    
     
     //add rotate mune
     CCMenuItemImage *protateRight = CCMenuItemImage::create("rotare_r.png","rotare_r.png",
@@ -264,50 +255,6 @@ void HelloWorld::gameLogic(float dt)
 }
 
 
-bool HelloWorld::onTextFieldAttachWithIME(CCTextFieldTTF * sender)
-{
-    CCLOG("启动输入");
-    return false;
-    //return true;(不启动)
-}
-//    当用户关闭虚拟键盘的时候回调函数
-bool HelloWorld::onTextFieldDetachWithIME(CCTextFieldTTF * sender)
-{
-    CCLOG("关闭输入");
-    if( sender == _nameText )
-    {
-        g_svr->doSvrCmd("reg", _nameText->getString());
-    }
-    
-    if( sender == _nameEnemy )
-    {
-        if((0 != strlen(_nameEnemy->getString()))
-           && (0 == strcmp(_nameEnemy->getString(), "对手")) )
-        {
-            g_svr->doSvrCmd("vs", _nameEnemy->getString());
-        }
-    }
-
-    return false;
-    //return true;(不关闭)
-}
-//    当用户进行输入 虚拟键盘的时候回调函数
-bool  HelloWorld::onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
-{
-    CCLOG("输入字符:%s", text);
-    //_nameText->setString(text);
-    return false;
-    //return true;(不输入)
-}
-//    当用户进行删除文字 虚拟键盘的时候回调函数
-bool HelloWorld::onTextFieldDeleteBackward(CCTextFieldTTF * sender, const char * delText, int nLen)
-{
-    CCLOG("删除字符");
-    return false;
-    //return true;(不删除)
-}
-
-
 HelloWorld::~HelloWorld()
 {
     if( _maplogic )
@@ -344,12 +291,6 @@ void HelloWorld::draw()
 }
 
 
-void HelloWorld::update(float dt)
-{
-
-}
-
-
 CCScene* HelloWorld::scene()
 {
     // 'scene' is an autorelease object
@@ -363,6 +304,8 @@ CCScene* HelloWorld::scene()
     return scene;
 }
 
+
+//-------------------------------------------------------------------------------
 void HelloWorld::ccTouchesBegan(CCSet* pTouches, CCEvent* event)
 {
     //获取触点集合
@@ -373,9 +316,29 @@ void HelloWorld::ccTouchesBegan(CCSet* pTouches, CCEvent* event)
     location.y = (location.y * (-1)) + CCDirector::sharedDirector()->getWinSize().height;
 
     //计算飞机碰触矩形
-    CCRect* _planeTextureRect = new CCRect(_plane->getPositionX() - _plane->getContentSize().width/2*_scalex,
-                                      _plane->getPositionY() - _plane->getContentSize().height/2*_scaley,
-                                      _plane->getContentSize().width*_scalex, _plane->getContentSize().height*_scaley);
+    CCRect* _planeTextureRect;
+    
+    switch (_planeDer) {
+        case DER_TOP:
+            _planeTextureRect = new CCRect(_plane_t->getPositionX() - _plane_t->getContentSize().width/2*_scalex,_plane_t->getPositionY() - _plane_t->getContentSize().height/2*_scaley,_plane_t->getContentSize().width*_scalex, _plane_t->getContentSize().height*_scaley);
+            break;
+            
+        case DER_DOWN:
+            _planeTextureRect = new CCRect(_plane_d->getPositionX() - _plane_d->getContentSize().width/2*_scalex,_plane_d->getPositionY() - _plane_d->getContentSize().height/2*_scaley,_plane_d->getContentSize().width*_scalex, _plane_d->getContentSize().height*_scaley);
+            break;
+            
+        case DER_RIGHT:
+            _planeTextureRect = new CCRect(_plane_r->getPositionX() - _plane_r->getContentSize().width/2*_scalex,_plane_r->getPositionY() - _plane_r->getContentSize().height/2*_scaley,_plane_r->getContentSize().width*_scalex, _plane_r->getContentSize().height*_scaley);
+            break;
+            
+        case DER_LEFT:
+            _planeTextureRect = new CCRect(_plane_l->getPositionX() - _plane_l->getContentSize().width/2*_scalex,_plane_l->getPositionY() - _plane_l->getContentSize().height/2*_scaley,_plane_l->getContentSize().width*_scalex, _plane_l->getContentSize().height*_scaley);
+            break;
+            
+        default:
+            break;
+    }
+    
     
     //计算炸弹碰触矩形
     CCRect* _boomTextureRect = new CCRect(_boom->getPositionX() - _boom->getContentSize().width/2*_scalex,
@@ -413,8 +376,37 @@ void HelloWorld::ccTouchesMoved(CCSet* pTouches, CCEvent* event)
     {
         if (_planeTouched == true)
         {
-            _maplogic->getMapPosition(_plane, location, realPosition);
-            _plane->setPosition(realPosition);
+//            _maplogic->getMapPosition(_plane, location, realPosition);
+//            _plane->setPosition(realPosition);
+            
+            switch (_planeDer) {
+                case DER_TOP:
+                    _maplogic->getMapPosition(_plane_t, location, realPosition);
+                    _plane_t->setPosition(realPosition);
+                    _planePos = _plane_t->getPosition();
+                    break;
+                    
+                case DER_DOWN:
+                    _maplogic->getMapPosition(_plane_d, location, realPosition);
+                    _plane_d->setPosition(realPosition);
+                    _planePos = _plane_d->getPosition();
+                    break;
+                    
+                case DER_RIGHT:
+                    _maplogic->getMapPosition(_plane_r, location, realPosition);
+                    _plane_r->setPosition(realPosition);
+                    _planePos = _plane_r->getPosition();
+                    break;
+                    
+                case DER_LEFT:
+                    _maplogic->getMapPosition(_plane_l, location, realPosition);
+                    _plane_l->setPosition(realPosition);
+                    _planePos = _plane_l->getPosition();
+                    break;
+                    
+                default:
+                    break;
+            }
         }
         
         
@@ -445,7 +437,7 @@ void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
     if (_planeTouched == true)
     {
         _planeTouched = false;
-        _maplogic->updateMap();
+        _maplogic->updateMap(_planeDer);
         _maplogic->displayMap();
     }
     
@@ -477,27 +469,26 @@ void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
 }
 
 
+//-------------------------------------------------------------------------------
 void HelloWorld::menuRotateRightCallback(CCObject* pSender)
 {
-    _fDeltaAngle+=90;
-    _plane->runAction(CCSequence::create(
-                                         CCRotateTo::create(0.5f,_fDeltaAngle),
-                                         NULL));
+    _planeDer++;
+    ratotePlane();
 }
 
 
 void HelloWorld::menuRotateLeftCallback(CCObject* pSender)
 {
-    _fDeltaAngle-=90;
-    _plane->runAction(CCSequence::create(
-                                         CCRotateTo::create(0.5f,_fDeltaAngle),
-                                         NULL));
+    _planeDer--;
+    ratotePlane();
 }
+
 
 void HelloWorld::btnChangeNameCallback(CCObject* pSender)
 {
     _nameText->attachWithIME();
 }
+
 
 void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
 {
@@ -514,12 +505,14 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
     }
 }
 
+
 void HelloWorld::btnVsCallback(CCObject* pSender)
 {
     _nameEnemy->attachWithIME();
 }
 
 
+//-------------------------------------------------------------------------------
 void HelloWorld::setOnlineLable()
 {
     bsetOnlineLable = false;
@@ -536,22 +529,6 @@ void HelloWorld::setOnlineLable()
 
 }
 
-void HelloWorld::addBoom(int x, int y, std::string boom)
-{
-    CCLOG("addBoom x %d y %d boom %s", x, y, boom.c_str());
-
-    CCSize size;
-    _maplogic->getItemSize(size.width, size.height);
-    CCLOG("width %f height %f", size.width, size.height);
-    
-    CCSprite* fire = CCSprite::create(boom.c_str());
-    CCPoint location(x, y), realPosition;
-    fire->setScale(size.width/fire->getContentSize().width);
-    _maplogic->getPosByCoor(fire, x, y, realPosition);
-    fire->setPosition(realPosition);
-    CCLOG("realPosition x %f realPosition y %f", realPosition.x, realPosition.y);
-    AddChild(fire);
-}
 
 void HelloWorld::setBoomPos()
 {
@@ -601,9 +578,146 @@ void HelloWorld::setBoomStatPos()
 }
 
 
+//-------------------------------------------------------------------------------
 void HelloWorld::AddChild(CCNode *pChild)
 {
     this->addChild(pChild, _zOrder);
     _zOrder++;
+}
+
+
+void HelloWorld::addBoom(int x, int y, std::string boom)
+{
+    CCLOG("addBoom x %d y %d boom %s", x, y, boom.c_str());
+    
+    CCSize size;
+    _maplogic->getItemSize(size.width, size.height);
+    CCLOG("width %f height %f", size.width, size.height);
+    
+    CCSprite* fire = CCSprite::create(boom.c_str());
+    CCPoint location(x, y), realPosition;
+    fire->setScale(size.width/fire->getContentSize().width);
+    _maplogic->getPosByCoor(fire, x, y, realPosition);
+    fire->setPosition(realPosition);
+    CCLOG("realPosition x %f realPosition y %f", realPosition.x, realPosition.y);
+    AddChild(fire);
+}
+
+void HelloWorld::ratotePlane()
+{
+    if( _planeDer < 0 )
+    {
+        _planeDer+=4;
+    }
+    _planeDer = _planeDer%4;
+    CCLOG("ratotePlane _planeDer %d", _planeDer);
+    
+    bool bTouched = false;
+    if((CCPointZero.x != _planePos.x) || (CCPointZero.y!=_planePos.y))
+    {
+        bTouched = true;
+    }
+    
+    _plane_t->setVisible(false);
+    _plane_d->setVisible(false);
+    _plane_r->setVisible(false);
+    _plane_l->setVisible(false);
+    
+    CCPoint realPosition;
+    std::string plane;
+    switch (_planeDer) {
+        case DER_TOP:
+            if( bTouched )
+            {
+                _maplogic->getMapPosition(_plane_t, _planePos, _planePos);
+                _plane_t->setPosition(_planePos);
+            }
+            _plane_t->setVisible(true);
+            break;
+        
+        case DER_DOWN:
+            if( bTouched )
+            {
+                _maplogic->getMapPosition(_plane_d, _planePos, _planePos);
+                _plane_d->setPosition(_planePos);
+            }
+            _plane_d->setVisible(true);
+            break;
+        
+        case DER_RIGHT:
+            if( bTouched )
+            {
+                _maplogic->getMapPosition(_plane_r, _planePos, _planePos);
+                _plane_r->setPosition(_planePos);
+            }_plane_r->setVisible(true);
+            break;
+        
+        case DER_LEFT:
+            if( bTouched )
+            {
+                _maplogic->getMapPosition(_plane_l, _planePos, _planePos);
+                _plane_l->setPosition(_planePos);
+            }
+            _plane_l->setVisible(true);
+            break;
+            
+        default:
+            _plane_t->setPosition(_planePos);
+            _plane_t->setVisible(true);
+            break;
+    }
+    
+    if( bTouched )
+    {
+        _maplogic->updateMap(_planeDer);
+    }
+    _maplogic->displayMap();
+}
+
+//-------------------------------------------------------------------------------
+bool HelloWorld::onTextFieldAttachWithIME(CCTextFieldTTF * sender)
+{
+    CCLOG("启动输入");
+    return false;
+    //return true;(不启动)
+}
+
+
+bool HelloWorld::onTextFieldDetachWithIME(CCTextFieldTTF * sender)
+{
+    CCLOG("关闭输入");
+    if( sender == _nameText )
+    {
+        g_svr->doSvrCmd("reg", _nameText->getString());
+    }
+    
+    if( sender == _nameEnemy )
+    {
+        if((0 != strlen(_nameEnemy->getString()))
+           && (0 == strcmp(_nameEnemy->getString(), "对手")) )
+        {
+            g_svr->doSvrCmd("vs", _nameEnemy->getString());
+        }
+    }
+    
+    return false;
+    //return true;(不关闭)
+}
+
+
+bool  HelloWorld::onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
+{
+    CCLOG("输入字符:%s", text);
+    //_nameText->setString(text);
+    return false;
+    //return true;(不输入)
+}
+
+
+bool HelloWorld::onTextFieldDeleteBackward(CCTextFieldTTF * sender, const char * delText, int nLen)
+{
+    CCLOG("删除字符");
+    return false;
+    //return true;(不删除)
 }
 

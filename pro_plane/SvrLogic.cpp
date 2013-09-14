@@ -27,14 +27,31 @@
 using namespace std;
 
 
+#define FREG_FUNC(scmd, bfunc)\
+{\
+if( 0 == strcmp(cmd.c_str(),scmd) )\
+{\
+CCLOG("do %s", scmd);\
+if( helloworld )\
+{\
+helloworld->bfunc = true;\
+}\
+else\
+{\
+CCLOG("_helloworld is null");\
+}\
+CCLOG("end %s", scmd);\
+}\
+}
+
+
 int Process(int fd, HelloWorld* helloworld )
 {
     CCLOG("Process begin fd:%d",fd);
-    //子进程用于接收信息
-    char* buf;
-    buf=(char *)malloc(1024);
-    memset(buf,0,100);
     
+    //子进程用于接收信息
+    char buf[1024] = {0};
+    memset(buf,0,100);
     if(recv(fd,buf,100,0) <= 0)
     {
         CCLOG("recv:");
@@ -47,7 +64,6 @@ int Process(int fd, HelloWorld* helloworld )
     
     std::string cmd, reps;
     std::string rbody = std::string(buf);
-    
     int r = CSvrLogic::splitResp(rbody, cmd, reps);
     CCLOG("r:%d cmd:%s reps:%s", r, cmd.c_str(), reps.c_str());
     if( 0 == r )
@@ -55,47 +71,9 @@ int Process(int fd, HelloWorld* helloworld )
         helloworld->_cmd = cmd;
         helloworld->_response = reps;
         
-        if( "onlineinfo" == cmd )
-        {
-            CCLOG("do onlineinfo");
-            if( helloworld )
-            {
-                helloworld->bsetOnlineLable = true;
-            }
-            else
-            {
-                CCLOG("_helloworld is null");
-            }
-            CCLOG("end onlineinfo");
-        }
-        else if( "hit" == cmd )
-        {
-            CCLOG("do hit");
-            if( helloworld )
-            {
-                helloworld->bsetBoomPos = true;
-            }
-            else
-            {
-                CCLOG("_helloworld is null");
-            }
-            CCLOG("end hit");
-        }
-        else if( "hitstat" == cmd )
-        {
-            CCLOG("do hitstat");
-            if( helloworld )
-            {
-                helloworld->bsetBoomStatPos = true;
-            }
-            else
-            {
-                CCLOG("_helloworld is null");
-            }
-            CCLOG("end hitstat");
-        }
-
-        else
+        FREG_FUNC("onlineinfo", bsetOnlineLable)
+        FREG_FUNC("hit",bsetBoomPos)
+        FREG_FUNC("hitstat",bsetBoomStatPos)
         {
             CCLOG("can not found function for cmd %s", cmd.c_str());
         }
@@ -109,6 +87,7 @@ CSvrLogic::CSvrLogic()
 {
     _bready = false;
 }
+
 
 CSvrLogic::~CSvrLogic()
 {
@@ -195,28 +174,29 @@ int CSvrLogic::doSvrCmd(std::string cmd, std::string request, std::string& reps,
         return -1;
     }
     
-    int sendbytes;//定义客户端套接字
-    char *buf;
-    
-    buf=(char *)malloc(1024);
+    //send request buffer
+    char buf[1024] = {0};
     memset(buf,0,1024);
-    
     strcpy(buf,cmd.c_str());
     strcat(buf,"@");
     strncat(buf,request.c_str(), request.length());
     CCLOG("doSvrCmd send buf:%s\n", buf);
     
+    int sendbytes;//定义客户端套接字
     if((sendbytes = send(_clientfd, buf, strlen(buf), 0)) == -1)
     {
         CCLOG("send error!\n");
         return -1;
     }
     
+    
     if( !bNeedResp )
         return 0;
     
     reps.clear();
     memset(buf,0,1024);
+    
+    //recive response buffer
     if(recv(_clientfd,buf,1024,0) <= 0)
     {
         CCLOG("recv error!");
@@ -224,12 +204,10 @@ int CSvrLogic::doSvrCmd(std::string cmd, std::string request, std::string& reps,
         raise(SIGSTOP);
         return -4;
     }
-    CCLOG("%s",buf);
+    CCLOG("doSvrCmd recive buf:%s",buf);
     
-    std::string cmd2;
     std::string rbody = std::string(buf);
-    
-    int r = splitResp(rbody, cmd2, reps);
+    int r = splitResp(rbody, cmd, reps);
     if( 0 == r )
     {
         
