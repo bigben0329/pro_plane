@@ -43,6 +43,10 @@ public:
                        cocos2d::CCPoint& newPosition,
                        cocos2d::CCPoint& realPosition);
     
+    int getPosByCoor(cocos2d::CCSprite* sprite,
+                                int x, int y,
+                                cocos2d::CCPoint& realPosition);
+    
     int setScale(float scalex, float scaley);
     int getCoordinate(int& x, int& y);
     int getItemSize(float& width, float& heigth);

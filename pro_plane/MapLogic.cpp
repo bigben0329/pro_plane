@@ -62,8 +62,8 @@ int CMapLogic::getCoordinate(int& x, int& y)
 
 int CMapLogic::getItemSize(float& width, float& heigth)
 {
-    width = _itemWidth;
-    heigth = _itemHeight;
+    width = _rect.size.width/_row;
+    heigth = _rect.size.height/_colum;
     return 0;
 }
 
@@ -178,6 +178,22 @@ int CMapLogic::getMapPosition(cocos2d::CCSprite* sprite,
     
     return 0;
 }
+
+
+int CMapLogic::getPosByCoor(cocos2d::CCSprite* sprite,
+                              int x, int y,
+                              cocos2d::CCPoint& realPosition)
+{
+    realPosition.x = _rect.getMinX() + x*_itemWidth + sprite->getContentSize().width/2;
+    realPosition.y = _rect.getMinY() + y*_itemHeight + sprite->getContentSize().height/2;
+    
+    //get real pos
+    realPosition.x *= _scalex;
+    realPosition.y *= _scaley;
+    
+    return 0;
+}
+
 
 void CMapLogic::displayMap()
 {

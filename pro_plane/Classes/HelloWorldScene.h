@@ -35,8 +35,7 @@ public:
     static cocos2d::CCScene* scene();
 
     virtual void draw();
-    void update(float dt);
-    
+        
     virtual void ccTouchesEnded(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
     virtual void ccTouchesBegan(cocos2d::CCSet* pTouches, cocos2d::CCEvent* event);
     virtual void ccTouchesMoved(cocos2d::CCSet* pTouches, cocos2d::CCEvent* event);
@@ -45,7 +44,7 @@ public:
     void menuRotateLeftCallback(CCObject* pSender);
     void btnChangeNameCallback(CCObject* pSender);
     void btnGetOnlineCallback(CCObject* pSender);
-    
+    void btnVsCallback(CCObject* pSender);
     
     //当用户启动虚拟键盘时的回调函数
     virtual bool onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF *pSender);
@@ -55,10 +54,20 @@ public:
     virtual bool onTextFieldInsertText(cocos2d::CCTextFieldTTF *pSender,const char *text,int nLen);
     //当用户删除文字时的回调函数
     virtual bool onTextFieldDeleteBackward(cocos2d::CCTextFieldTTF *pSender,const char *delText,int nLen);
-    
-    void setOnlineLable(const std::string content);
 
+    void update(float dt);
+    
+    //game logic
+    std::string _cmd;
+    std::string _response;
+    
+    bool bsetOnlineLable = false;
+    bool bsetBoomPos = false;
+    bool bsetBoomStatPos = false;
+    
 private:
+    
+    void AddChild(CCNode *pChild);
     
     //plane mode
     cocos2d::CCSprite* _plane;
@@ -89,6 +98,15 @@ private:
     //online mode
     cocos2d::CCLabelTTF* _labelOnline;
     cocos2d::CCLayer* _layerOnline;
+    int _zOrder;
+    
+    //game logic
+    void gameLogic(float dt);
+    
+    void setOnlineLable();
+    void setBoomPos();
+    void setBoomStatPos();
+    void addBoom(int x, int y, std::string boom);
 };
 
 #endif // __HELLO_WORLD_H__

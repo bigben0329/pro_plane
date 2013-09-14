@@ -27,18 +27,6 @@
 using namespace std;
 
 
-CSvrLogic::CSvrLogic()
-{
-    _bready = false;
-}
-
-CSvrLogic::~CSvrLogic()
-{
-    closeSvr();
-}
-
-
-
 int Process(int fd, HelloWorld* helloworld )
 {
     CCLOG("Process begin fd:%d",fd);
@@ -55,21 +43,24 @@ int Process(int fd, HelloWorld* helloworld )
         exit(1);
     }
     CCLOG("server cmd response:%s",buf);
-
+    
     
     std::string cmd, reps;
     std::string rbody = std::string(buf);
-
+    
     int r = CSvrLogic::splitResp(rbody, cmd, reps);
     CCLOG("r:%d cmd:%s reps:%s", r, cmd.c_str(), reps.c_str());
     if( 0 == r )
     {
+        helloworld->_cmd = cmd;
+        helloworld->_response = reps;
+        
         if( "onlineinfo" == cmd )
         {
             CCLOG("do onlineinfo");
             if( helloworld )
             {
-                helloworld->setOnlineLable(reps);
+                helloworld->bsetOnlineLable = true;
             }
             else
             {
@@ -77,17 +68,51 @@ int Process(int fd, HelloWorld* helloworld )
             }
             CCLOG("end onlineinfo");
         }
-        else if( "" == cmd )
+        else if( "hit" == cmd )
         {
-
+            CCLOG("do hit");
+            if( helloworld )
+            {
+                helloworld->bsetBoomPos = true;
+            }
+            else
+            {
+                CCLOG("_helloworld is null");
+            }
+            CCLOG("end hit");
         }
+        else if( "hitstat" == cmd )
+        {
+            CCLOG("do hitstat");
+            if( helloworld )
+            {
+                helloworld->bsetBoomStatPos = true;
+            }
+            else
+            {
+                CCLOG("_helloworld is null");
+            }
+            CCLOG("end hitstat");
+        }
+
         else
         {
             CCLOG("can not found function for cmd %s", cmd.c_str());
         }
     }
-
+    
 	return 0;
+}
+
+
+CSvrLogic::CSvrLogic()
+{
+    _bready = false;
+}
+
+CSvrLogic::~CSvrLogic()
+{
+    closeSvr();
 }
 
 
@@ -127,7 +152,7 @@ int CSvrLogic::initSvr(const std::string ip, const int port )
     CCLOG("protocol head\n%s\n",_rev_buf);
     
     // 创建线程管理类的实例，把要执行的线程函数和最大线程数传进去
-	CThreadManager* pManager = new CThreadManager(Process, 1);
+    CThreadManager* pManager = new CThreadManager(Process, 1);
     pManager->regHelloWorld(_helloworld);
 	pManager->regFd(_clientfd);
 	pManager->PostSem();
@@ -222,5 +247,6 @@ int CSvrLogic::closeSvr()
 int CSvrLogic::regScene(HelloWorld* hl)
 {
     _helloworld = hl;
+    return 0;
 }
 

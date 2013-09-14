@@ -15,6 +15,11 @@ using namespace CocosDenshion;
 
 #define PTM_RATIO 32
 
+#define COOR_BEGIN_X 28
+#define COOR_BEGIN_Y 15
+#define COOR_MAP_WIDTH 322
+#define COOR_MAP_HEIGHT 275
+
 CSvrLogic* g_svr;
 
 enum {
@@ -73,16 +78,16 @@ CCAffineTransform PhysicsSprite::nodeToParentTransform(void)
 
 HelloWorld::HelloWorld()
 {
-    //启动touch事件
-    _planeTouched = false;
-    setTouchEnabled( true );
-    //启动重力感应
-    setAccelerometerEnabled( false );
+    setTouchEnabled( true );      //启动touch事件
+    setAccelerometerEnabled( false );      //启动重力感应
     
-
+    _boomTouched = false;
+    _planeTouched = false;
+    _name = "ben5";
+    _request = "test";
+    _zOrder = 0;
+    
     CCSize s = CCDirector::sharedDirector()->getWinSize();
-    // init physics
-    //this->initPhysics();
     
 
     //add background png
@@ -90,58 +95,46 @@ HelloWorld::HelloWorld()
     pSprbackground->setPosition( ccp(s.width/2, s.height/2) );
     pSprbackground->setScaleX(s.width/pSprbackground->getContentSize().width);
     pSprbackground->setScaleY(s.height/pSprbackground->getContentSize().height);
-    this->addChild(pSprbackground, 0);
+    AddChild(pSprbackground);
     
-    
-    //add map
-    CCSprite* pSprite = CCSprite::create("table11x13.png");
-    _scalex = s.width/pSprite->getContentSize().width;
-    _scaley = s.height/pSprite->getContentSize().height;
-    pSprite->setPosition( ccp(s.width/2, s.height/2) );
-    pSprite->setScaleX(_scalex);
-    pSprite->setScaleY(_scaley);
-    this->addChild(pSprite, 1);
+    //add map picture
+    CCSprite* pTable = CCSprite::create("table11x13.png");
+    _scalex = s.width/pTable->getContentSize().width;
+    _scaley = s.height/pTable->getContentSize().height;
+    pTable->setPosition( ccp(s.width/2, s.height/2) );
+    pTable->setScaleX(_scalex);
+    pTable->setScaleY(_scaley);
+    AddChild(pTable);
 
-
-    //add label
-    CCLabelTTF *label = CCLabelTTF::create("正牌打飞机", "Marker Felt", 20*_scalex);
-    addChild(label, 2);
-    label->setColor(ccc3(0,0,255));
-    label->setPosition(ccp( s.width - label->getContentSize().width/2-10*_scalex, s.height-50*_scalex));
+    //add logo lable
+    CCLabelTTF *logo = CCLabelTTF::create("正牌打飞机", "Marker Felt", 20*_scalex);
+    logo->setColor(ccc3(0,0,255));
+    logo->setPosition(ccp( s.width - logo->getContentSize().width/2-10*_scalex, s.height-50*_scalex));
+    AddChild(logo);
     
-    
-    // add plane
+    // add plane picture
     _plane = CCSprite::create("plane2.png");
     _plane->setScaleX(_scalex);
     _plane->setScaleY(_scaley);
     _plane->setPosition(ccp((s.width - _plane->getContentSize().width/2*_scalex),
                             (_plane->getContentSize().height/2*_scaley + 110*_scaley)));
-    this->addChild(_plane, 3);
-    
+    AddChild(_plane);
     
     //add rotate mune
-    CCMenuItemImage *protateRight = CCMenuItemImage::create(
-                                                          "rotare_r.png",
-                                                          "rotare_r.png",
-                                                          this,
-                                                          menu_selector(HelloWorld::menuRotateRightCallback) );
+    CCMenuItemImage *protateRight = CCMenuItemImage::create("rotare_r.png","rotare_r.png",
+                            this,menu_selector(HelloWorld::menuRotateRightCallback) );
     protateRight->setPosition( ccp(CCDirector::sharedDirector()->getWinSize().width - 35*_scalex, 80*_scaley) );
     CCMenu* pMenuRight = CCMenu::create(protateRight, NULL);
     pMenuRight->setPosition( CCPointZero );
-    this->addChild(pMenuRight, 4);
-    
+    AddChild(pMenuRight);
     
     //add rotate mune
-    CCMenuItemImage *protateLeft = CCMenuItemImage::create(
-    "rotare_l.png",
-                                                            "rotare_l.png",
-                                                            this,
-                                                            menu_selector(HelloWorld::menuRotateLeftCallback));
+    CCMenuItemImage *protateLeft = CCMenuItemImage::create("rotare_l.png","rotare_l.png",
+                             this,menu_selector(HelloWorld::menuRotateLeftCallback));
     protateLeft->setPosition( ccp(CCDirector::sharedDirector()->getWinSize().width - 90*_scalex, 80*_scaley) );
     CCMenu* pMenuLeft = CCMenu::create(protateLeft, NULL);
     pMenuLeft->setPosition( CCPointZero );
-    this->addChild(pMenuLeft, 5);
-
+    AddChild(pMenuLeft);
 
     // add boom
     _boom = CCSprite::create("boom.png");
@@ -149,78 +142,83 @@ HelloWorld::HelloWorld()
     _boom->setScaleY(_scaley);
     _boom->setPosition(ccp((s.width - _boom->getContentSize().width/2*_scalex- 90*_scalex),
                             (_boom->getContentSize().height/2*_scaley + 20)));
-    this->addChild(_boom, 6);
+    AddChild(_boom);
 
-    
     //init coor label
     _coor = CCLabelTTF::create("炸弹坐标", "Marker Felt", 45*_scalex);
-    addChild(_coor, 9);
     _coor->setVisible(false);
     _coor->setColor(ccc3(0,0,7));
-    
+    AddChild(_coor);
     
     //init map logic
-    _maplogic = new CMapLogic(CCRectMake(28,15,322,275), 13, 11);
+    _maplogic = new CMapLogic(CCRectMake(COOR_BEGIN_X,COOR_BEGIN_Y,COOR_MAP_WIDTH,COOR_MAP_HEIGHT), 13, 11);
     _maplogic->setScale(_scalex, _scaley);
     _fDeltaAngle = 0;
     
-    
     //add text input
-    _nameText = CCTextFieldTTF::textFieldWithPlaceHolder(_name.c_str(), "Thonburi",20*_scalex);
+    _nameText = CCTextFieldTTF::textFieldWithPlaceHolder(_name.c_str(), "Thonburi",18*_scalex);
     _nameText->setPosition(ccp(s.width - _nameText->getContentSize().width/2-100,
-                               s.height-20));
+                               s.height-30));
     _nameText->setDelegate(this);
     _nameText->setColor(ccc3(0,0,7));
-    addChild(_nameText, 8);
-    
+    _nameText->setString(_name.c_str());
+    AddChild(_nameText);
     
     //add change name button
     CCMenuItemImage *pbtn_cn = CCMenuItemImage::create("btn_cn0.png", "btn_cn.png", this,
-                                                        menu_selector(HelloWorld::btnChangeNameCallback));
+                               menu_selector(HelloWorld::btnChangeNameCallback));
     pbtn_cn->setPosition( ccp(_nameText->getPosition().x-60*_scalex, _nameText->getPosition().y) );
     _pMenuCn = CCMenu::create(pbtn_cn, NULL);
     _pMenuCn->setPosition( CCPointZero );
     pbtn_cn->setScale(_scalex);
     pbtn_cn->setVisible(true);
-    addChild(_pMenuCn, 9);
-    
+    AddChild(_pMenuCn);
     
     //add get online button
     CCMenuItemImage *pbtn_ol = CCMenuItemImage::create("btn_online.png", "btn_online.png", this,
-                                                       menu_selector(HelloWorld::btnGetOnlineCallback));
-    pbtn_ol->setPosition( ccp(_nameText->getPosition().x-260*_scalex, _nameText->getPosition().y) );
+                                menu_selector(HelloWorld::btnGetOnlineCallback));
+    pbtn_ol->setPosition( ccp(60*_scalex, _nameText->getPosition().y) );
     pbtn_ol->setScale(_scalex);
     CCMenu* _pMenuOnline = CCMenu::create(pbtn_ol, NULL);
     _pMenuOnline->setPosition( CCPointZero );
-    addChild(_pMenuOnline, 10);
-
+    AddChild(_pMenuOnline);
+    
+    
+    //add vs button
+    CCMenuItemImage *pbtn_vs = CCMenuItemImage::create("btn_vs.png", "btn_vs.png", this,
+                                                       menu_selector(HelloWorld::btnVsCallback));
+    pbtn_vs->setPosition(ccp( pbtn_ol->getPositionX()+100*_scalex, pbtn_ol->getPositionY()));
+    pbtn_vs->setScale(_scalex);
+    CCMenu* _pMenuVs = CCMenu::create(pbtn_vs, NULL);
+    _pMenuVs->setPosition( CCPointZero );
+    AddChild(_pMenuVs);
+    
     
     //add enemy text input
-    _nameEnemy = CCTextFieldTTF::textFieldWithPlaceHolder("对手", "Thonburi",15*_scalex);
-    _nameEnemy->setPosition(ccp( pbtn_ol->getPositionX()+60, pbtn_ol->getPositionY()));
+    _nameEnemy = CCTextFieldTTF::textFieldWithPlaceHolder("对手", "Thonburi",18*_scalex);
+    _nameEnemy->setPosition(ccp( pbtn_vs->getPositionX()+55*_scalex, pbtn_vs->getPositionY()));
     _nameEnemy->setDelegate(this);
     _nameEnemy->setColor(ccc3(0,0,7));
-    addChild(_nameEnemy, 11);
+    AddChild(_nameEnemy);
     
+    //init fire label
+    CCSize size;
+    _maplogic->getItemSize(size.width, size.height);
     
     //add _layerOnline
     _layerOnline = new CCLayer();
-    
-    
-    addChild(_layerOnline,20);
     _layerOnline->setPosition(s.width/2, s.height/2);
     _layerOnline->setVisible(false);
+    AddChild(_layerOnline);
     
     //add background png
-    CCSprite* pSprbackground2 = CCSprite::create("background.png");
-    pSprbackground2->setPosition(CCPointZero );
-    pSprbackground2->setScaleX(0.5f);
-    pSprbackground2->setScaleY(0.5f);
-    _layerOnline->addChild(pSprbackground2, 0);
+    CCSprite* pspbg = CCSprite::create("background.png");
+    pspbg->setPosition(CCPointZero );
+    pspbg->setScaleX(0.5f);
+    pspbg->setScaleY(0.5f);
+    _layerOnline->addChild(pspbg, 0);
     
-    
-    //add label
-    _labelOnline = CCLabelTTF::create("正牌打飞机", "Marker Felt", 20*_scalex);
+    _labelOnline = CCLabelTTF::create("AAA", "Marker Felt", 15*_scalex);
     _labelOnline->setColor(ccc3(0,255,0));
     _labelOnline->setPosition(CCPointZero);
     _layerOnline->addChild(_labelOnline, 2);
@@ -229,14 +227,39 @@ HelloWorld::HelloWorld()
     //init svr logic
     g_svr = new CSvrLogic();
     g_svr->regScene(this);
-    //g_svr->initSvr("106.187.89.124", 3490);
+    g_svr->initSvr("106.187.89.124", 3490);
     //g_svr->initSvr("172.25.32.144", 3490);
-    g_svr->initSvr("127.0.0.1", 3490);
-    _name = "ben5";
-    _request = "test";
+    //g_svr->initSvr("127.0.0.1", 3490);
     g_svr->doSvrCmd("reg", _name);
     
+    this->schedule( schedule_selector(HelloWorld::gameLogic) );
     scheduleUpdate();
+    
+}
+
+void HelloWorld::gameLogic(float dt)
+{
+    //在线列表
+    if( bsetOnlineLable )
+    {
+        bsetOnlineLable = false;
+        setOnlineLable();
+    }
+    
+    //炸弹打击
+    if( bsetBoomPos )
+    {
+        bsetBoomPos = false;
+        setBoomPos();
+    }
+    
+    //炸弹结果
+    if( bsetBoomStatPos )
+    {
+        bsetBoomStatPos = false;
+        setBoomStatPos();
+    }
+    
     
 }
 
@@ -258,7 +281,8 @@ bool HelloWorld::onTextFieldDetachWithIME(CCTextFieldTTF * sender)
     
     if( sender == _nameEnemy )
     {
-        if( _nameEnemy->getString() != "" && _nameEnemy->getString()!="对手" )
+        if((0 != strlen(_nameEnemy->getString()))
+           && (0 == strcmp(_nameEnemy->getString(), "对手")) )
         {
             g_svr->doSvrCmd("vs", _nameEnemy->getString());
         }
@@ -360,9 +384,6 @@ void HelloWorld::ccTouchesBegan(CCSet* pTouches, CCEvent* event)
     
     for (CCSetIterator iter = pTouches->begin(); iter != pTouches->end(); ++iter)
     {
-//        CCLog("_planeTextureRect minx:%f maxx:%f miny:%f maxy:%f",
-//              _planeTextureRect->getMinX(), _planeTextureRect->getMaxX(),
-//              _planeTextureRect->getMinY(), _planeTextureRect->getMaxY());
         if (_planeTextureRect->containsPoint(location))
         {
             CCLog("Touched Plane Sprite");
@@ -440,8 +461,6 @@ void HelloWorld::ccTouchesEnded(CCSet* pTouches, CCEvent* event)
         int coorX = 0, coorY = 0;
         _maplogic->getCoordinate(coorX, coorY);
         
-        g_svr->doSvrCmd(_name, _request);
-        
         FIGHT_STATUS re = _maplogic->hitMap(coorX, coorY);
         if( FIGHT_STATUS_WIN == re )
         {
@@ -485,12 +504,9 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
     if( !_layerOnline->isVisible() )
     {
         _layerOnline->setVisible(true);
-        _nameEnemy->attachWithIME();
-        
-        //std::string resp;
-        //g_svr->doSvrCmd("onlineinfo", "ben", resp, true);
+        g_svr->regScene(this);
         g_svr->doSvrCmd("onlineinfo", "ben");
-        //setOnlineLable(resp);
+
     }
     else
     {
@@ -498,13 +514,19 @@ void HelloWorld::btnGetOnlineCallback(CCObject* pSender)
     }
 }
 
-
-void HelloWorld::setOnlineLable(const std::string content)
+void HelloWorld::btnVsCallback(CCObject* pSender)
 {
-    CCLOG("setOnlineLable begin content %s", content.c_str());
+    _nameEnemy->attachWithIME();
+}
+
+
+void HelloWorld::setOnlineLable()
+{
+    bsetOnlineLable = false;
+    CCLOG("setOnlineLable begin content %s", _response.c_str());
     if( _labelOnline )
     {
-        _labelOnline->setString(content.c_str());
+        _labelOnline->setString(_response.c_str());
     }
     else
     {
@@ -512,5 +534,76 @@ void HelloWorld::setOnlineLable(const std::string content)
     }
     CCLOG("setOnlineLable end content %s", _labelOnline->getString());
 
+}
+
+void HelloWorld::addBoom(int x, int y, std::string boom)
+{
+    CCLOG("addBoom x %d y %d boom %s", x, y, boom.c_str());
+
+    CCSize size;
+    _maplogic->getItemSize(size.width, size.height);
+    CCLOG("width %f height %f", size.width, size.height);
+    
+    CCSprite* fire = CCSprite::create(boom.c_str());
+    CCPoint location(x, y), realPosition;
+    fire->setScale(size.width/fire->getContentSize().width);
+    _maplogic->getPosByCoor(fire, x, y, realPosition);
+    fire->setPosition(realPosition);
+    CCLOG("realPosition x %f realPosition y %f", realPosition.x, realPosition.y);
+    AddChild(fire);
+}
+
+void HelloWorld::setBoomPos()
+{
+    bsetBoomPos = false;
+    CCLOG("setBoomPos content |%s|", _response.c_str());
+    
+    int x= 0 , y = 0 ;
+    sscanf(_response.c_str(),"{\"x\":%d,\"y\":%d}", &x, &y);
+    CCLOG("x %d y %d _scalex %f _scaley %f", x, y, _scalex, _scaley);
+    
+    std::string boom = "fire_r.png";
+    addBoom(x, y, boom);
+    
+    FIGHT_STATUS stat = _maplogic->hitMap(x, y);
+    char cStat[128] = {0};
+    snprintf(cStat, sizeof(cStat), "{\"x\":%d,\"y\":%d,\"stat\":%d}", x, y, stat);
+    g_svr->doSvrCmd("hitstat", std::string(cStat));
+}
+
+void HelloWorld::setBoomStatPos()
+{
+    CCLOG("setBoomPos content |%s|", _response.c_str());
+    
+    int x= 0, y = 0, stat = 0;
+    int ret = sscanf(_response.c_str(),"{\"x\":%d,\"y\":%d,\"stat\":%d}", &x, &y, &stat);
+    CCLOG("ret %d x %d y %d stat %d", ret, x, y, stat);
+    
+    std::string boom;
+    switch (stat) {
+        case FIGHT_STATUS_WIN:
+            boom = "fire_o.png";
+            break;
+        
+        case FIGHT_STATUS_HURT:
+            boom = "fire_r.png";
+            break;
+        case FIGHT_STATUS_MISS:
+            boom = "fire_y.png";
+            break;
+            
+        default:
+            boom = "fire_y.png";
+            break;
+    }
+    
+    addBoom(x, y, boom);
+}
+
+
+void HelloWorld::AddChild(CCNode *pChild)
+{
+    this->addChild(pChild, _zOrder);
+    _zOrder++;
 }
 
